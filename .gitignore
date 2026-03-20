@@ -1,0 +1,25 @@
+# Logs
+logs
+*.log
+
+# Dependency directories
+node_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# dotenv environment variable files
+.env
+.env.*
+!.env.example
+
+# Build output
+dist
+
+# Coverage
+coverage
+*.lcov
+
+# Project local
+.tmp
+.learn
