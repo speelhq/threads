@@ -43,6 +43,13 @@ router.post("/signup", verifyToken, async (req, res) => {
     external_auth_id: firebaseUid,
   });
 
+  if (!user) {
+    res.status(409).json({
+      error: { code: "USER_ALREADY_EXISTS", message: "User already exists" },
+    });
+    return;
+  }
+
   res.status(201).json(user);
 });
 

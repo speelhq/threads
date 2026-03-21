@@ -70,6 +70,16 @@ export async function verifyToken(
     return;
   }
 
+  if (!decoded.email) {
+    res.status(400).json({
+      error: {
+        code: "EMAIL_REQUIRED",
+        message: "Token does not contain an email address",
+      },
+    });
+    return;
+  }
+
   req.firebaseUid = decoded.uid;
   req.firebaseEmail = decoded.email;
   next();

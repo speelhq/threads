@@ -22,9 +22,10 @@ export async function createUser(params: {
   display_name: string;
   external_auth_id: string;
 }) {
-  const [user] = await db
+  const rows = await db
     .insert(users)
     .values(params)
+    .onConflictDoNothing({ target: users.external_auth_id })
     .returning({
       id: users.id,
       email: users.email,
@@ -32,7 +33,7 @@ export async function createUser(params: {
       role: users.role,
       created_at: users.created_at,
     });
-  return user;
+  return rows[0] ?? null;
 }
 
 export async function getUserWithCohorts(userId: string) {

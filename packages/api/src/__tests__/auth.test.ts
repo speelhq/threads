@@ -107,6 +107,19 @@ describe("Auth endpoints", () => {
       expect(res.body.error.code).toBe("USER_ALREADY_EXISTS");
     });
 
+    it("returns 409 on race condition (createUser returns null)", async () => {
+      mockFindUser.mockResolvedValue(null);
+      mockCreateUser.mockResolvedValue(null);
+
+      const res = await request(app)
+        .post("/auth/signup")
+        .set("Authorization", "Bearer valid-token")
+        .send({ display_name: "Test User" });
+
+      expect(res.status).toBe(409);
+      expect(res.body.error.code).toBe("USER_ALREADY_EXISTS");
+    });
+
     it("returns 400 when display_name is empty", async () => {
       const res = await request(app)
         .post("/auth/signup")

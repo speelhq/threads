@@ -82,20 +82,20 @@ describe("auth service", () => {
       ).rejects.toThrow();
     });
 
-    it("rejects duplicate external_auth_id", async () => {
+    it("returns null on duplicate external_auth_id", async () => {
       await createUser({
         email: "a@example.com",
         display_name: "User 1",
         external_auth_id: "uid-dup",
       });
 
-      await expect(
-        createUser({
-          email: "b@example.com",
-          display_name: "User 2",
-          external_auth_id: "uid-dup",
-        }),
-      ).rejects.toThrow();
+      const result = await createUser({
+        email: "b@example.com",
+        display_name: "User 2",
+        external_auth_id: "uid-dup",
+      });
+
+      expect(result).toBeNull();
     });
   });
 
