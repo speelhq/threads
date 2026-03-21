@@ -4,11 +4,22 @@ import { auth } from "./firebase.js";
 import { db } from "../db/connection.js";
 import { users } from "../db/schema/index.js";
 
-type AuthUser = {
+export type AuthUser = {
   id: string;
   email: string;
   display_name: string;
   role: "admin" | "member";
+};
+
+/** Request after verifyToken has run. */
+export type TokenVerifiedRequest = Request & {
+  firebaseUid: string;
+  firebaseEmail: string;
+};
+
+/** Request after verifyToken + resolveUser have run. */
+export type AuthenticatedRequest = TokenVerifiedRequest & {
+  user: AuthUser;
 };
 
 declare global {
