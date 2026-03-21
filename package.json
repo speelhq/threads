@@ -10,12 +10,17 @@
   },
   "packageManager": "pnpm@10.29.3",
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "protobufjs", "@firebase/util"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "protobufjs",
+      "@firebase/util"
+    ]
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
     "oxfmt": "^0.41.0",
     "oxlint": "^1.56.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0"
   }
 }

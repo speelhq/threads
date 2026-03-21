@@ -5,7 +5,12 @@ import { userCohorts, cohorts } from "../db/schema/auth.js";
 
 export async function findUserByExternalId(externalAuthId: string) {
   const [user] = await db
-    .select()
+    .select({
+      id: users.id,
+      email: users.email,
+      display_name: users.display_name,
+      role: users.role,
+    })
     .from(users)
     .where(eq(users.external_auth_id, externalAuthId))
     .limit(1);

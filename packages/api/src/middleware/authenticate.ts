@@ -1,8 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import { eq } from "drizzle-orm";
 import { auth } from "./firebase.js";
-import { db } from "../db/connection.js";
-import { users } from "../db/schema/index.js";
+import { findUserByExternalId } from "../services/auth.js";
 
 export type AuthUser = {
   id: string;
@@ -96,16 +94,7 @@ export async function resolveUser(
     return;
   }
 
-  const [user] = await db
-    .select({
-      id: users.id,
-      email: users.email,
-      display_name: users.display_name,
-      role: users.role,
-    })
-    .from(users)
-    .where(eq(users.external_auth_id, req.firebaseUid))
-    .limit(1);
+  const user = await findUserByExternalId(req.firebaseUid);
 
   if (!user) {
     res.status(401).json({
