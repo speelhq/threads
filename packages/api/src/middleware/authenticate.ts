@@ -1,0 +1,111 @@
+import type { Request, Response, NextFunction } from "express";
+import { eq } from "drizzle-orm";
+import { auth } from "./firebase.js";
+import { db } from "../db/connection.js";
+import { users } from "../db/schema/index.js";
+
+type AuthUser = {
+  id: string;
+  email: string;
+  display_name: string;
+  role: "admin" | "member";
+};
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthUser;
+      firebaseUid?: string;
+      firebaseEmail?: string;
+    }
+  }
+}
+
+function extractToken(req: Request): string | null {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith("Bearer ")) {
+    return null;
+  }
+  return header.slice(7);
+}
+
+/**
+ * Verifies Firebase token and sets req.firebaseUid / req.firebaseEmail.
+ */
+export async function verifyToken(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const token = extractToken(req);
+  if (!token) {
+    res.status(401).json({
+      error: {
+        code: "UNAUTHORIZED",
+        message: "Missing or invalid authorization header",
+      },
+    });
+    return;
+  }
+
+  let decoded;
+  try {
+    decoded = await auth.verifyIdToken(token);
+  } catch {
+    res.status(401).json({
+      error: {
+        code: "TOKEN_EXPIRED",
+        message: "Token is expired or invalid",
+      },
+    });
+    return;
+  }
+
+  req.firebaseUid = decoded.uid;
+  req.firebaseEmail = decoded.email;
+  next();
+}
+
+/**
+ * Looks up the user in the DB by req.firebaseUid and sets req.user.
+ * Must be used after verifyToken.
+ */
+export async function resolveUser(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  if (!req.firebaseUid) {
+    res.status(401).json({
+      error: {
+        code: "UNAUTHORIZED",
+        message: "Missing or invalid authorization header",
+      },
+    });
+    return;
+  }
+
+  const [user] = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      display_name: users.display_name,
+      role: users.role,
+    })
+    .from(users)
+    .where(eq(users.external_auth_id, req.firebaseUid))
+    .limit(1);
+
+  if (!user) {
+    res.status(401).json({
+      error: {
+        code: "USER_NOT_FOUND",
+        message: "User not found",
+      },
+    });
+    return;
+  }
+
+  req.user = user;
+  next();
+}
