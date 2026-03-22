@@ -1,5 +1,5 @@
 {
-  "id": "9f1fe3f6-bcae-4237-b2ec-c617e16784a3",
+  "id": "85344247-666c-4709-95ec-df2f1796e461",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -292,8 +292,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.links": {
-      "name": "links",
+    "public.bookmarks": {
+      "name": "bookmarks",
       "schema": "",
       "columns": {
         "id": {
@@ -361,8 +361,8 @@
         }
       },
       "indexes": {
-        "idx_links_thread_id": {
-          "name": "idx_links_thread_id",
+        "idx_bookmarks_thread_id": {
+          "name": "idx_bookmarks_thread_id",
           "columns": [
             {
               "expression": "thread_id",
@@ -378,9 +378,9 @@
         }
       },
       "foreignKeys": {
-        "links_thread_id_threads_id_fk": {
-          "name": "links_thread_id_threads_id_fk",
-          "tableFrom": "links",
+        "bookmarks_thread_id_threads_id_fk": {
+          "name": "bookmarks_thread_id_threads_id_fk",
+          "tableFrom": "bookmarks",
           "tableTo": "threads",
           "columnsFrom": [
             "thread_id"
@@ -391,9 +391,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "links_message_id_messages_id_fk": {
-          "name": "links_message_id_messages_id_fk",
-          "tableFrom": "links",
+        "bookmarks_message_id_messages_id_fk": {
+          "name": "bookmarks_message_id_messages_id_fk",
+          "tableFrom": "bookmarks",
           "tableTo": "messages",
           "columnsFrom": [
             "message_id"

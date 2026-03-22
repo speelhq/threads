@@ -128,7 +128,7 @@ export type Todo = {
   updated_at: string;
 };
 
-export type Link = {
+export type Bookmark = {
   id: string;
   thread_id: string;
   message_id: string | null;
@@ -205,7 +205,7 @@ export type ThreadDetailResponse = {
     completed_at: string | null;
     created_at: string;
   }[];
-  links: {
+  bookmarks: {
     id: string;
     url: string;
     title: string | null;
@@ -306,19 +306,19 @@ export type CrossThreadTodoResponse = {
   next_cursor: string | null;
 };
 
-// ── Link API ──
+// ── Bookmark API ──
 
-export type CreateLinkRequest = {
+export type CreateBookmarkRequest = {
   url: string;
   message_id?: string;
 };
 
-export type UpdateLinkRequest = {
+export type UpdateBookmarkRequest = {
   title?: string;
   description?: string;
 };
 
-export type LinkResponse = {
+export type BookmarkResponse = {
   id: string;
   url: string;
   title: string | null;
@@ -329,8 +329,8 @@ export type LinkResponse = {
   created_at: string;
 };
 
-export type LinkListResponse = {
-  links: LinkResponse[];
+export type BookmarkListResponse = {
+  bookmarks: BookmarkResponse[];
 };
 
 // ── Tag API ──

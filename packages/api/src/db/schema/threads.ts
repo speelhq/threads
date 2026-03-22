@@ -71,8 +71,8 @@ export const todos = pgTable(
   ],
 );
 
-export const links = pgTable(
-  "links",
+export const bookmarks = pgTable(
+  "bookmarks",
   {
     id: uuid().primaryKey().defaultRandom(),
     thread_id: uuid()
@@ -89,7 +89,7 @@ export const links = pgTable(
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("idx_links_thread_id").on(t.thread_id)],
+  (t) => [index("idx_bookmarks_thread_id").on(t.thread_id)],
 );
 
 export const tags = pgTable(
