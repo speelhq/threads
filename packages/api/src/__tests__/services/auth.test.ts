@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { getDb, getClient_UNSAFE } from "../../db/connection.js";
-import { users } from "../../db/schema/auth.js";
-import { cohorts, userCohorts } from "../../db/schema/auth.js";
+import { users, workspaces, cohorts, userCohorts } from "../../db/schema/auth.js";
 import {
   findUserByExternalId,
   createUser,
@@ -9,9 +8,22 @@ import {
   EmailAlreadyExistsError,
 } from "../../services/auth.js";
 
+async function createWorkspaceAndCohort(name: string, startDate: string, endDate: string) {
+  const [ws] = await getDb()
+    .insert(workspaces)
+    .values({ type: "cohort", name })
+    .returning();
+  const [cohort] = await getDb()
+    .insert(cohorts)
+    .values({ workspace_id: ws.id, name, start_date: startDate, end_date: endDate })
+    .returning();
+  return cohort;
+}
+
 beforeEach(async () => {
   await getDb().delete(userCohorts);
   await getDb().delete(cohorts);
+  await getDb().delete(workspaces);
   await getDb().delete(users);
 });
 
@@ -127,14 +139,7 @@ describe("auth service", () => {
         external_auth_id: "uid-student",
       });
 
-      const [cohort] = await getDb()
-        .insert(cohorts)
-        .values({
-          name: "Cohort 2026-Q1",
-          start_date: "2026-01-01",
-          end_date: "2026-03-31",
-        })
-        .returning();
+      const cohort = await createWorkspaceAndCohort("Cohort 2026-Q1", "2026-01-01", "2026-03-31");
 
       await getDb().insert(userCohorts).values({
         user_id: user.id,
@@ -148,6 +153,7 @@ describe("auth service", () => {
       expect(result!.cohorts[0].name).toBe("Cohort 2026-Q1");
       expect(result!.cohorts[0].role_in_cohort).toBe("student");
       expect(result!.cohorts[0].start_date).toBe("2026-01-01");
+      expect(result!.cohorts[0].workspace_id).toBe(cohort.workspace_id);
     });
 
     it("returns multiple cohorts with different roles", async () => {
@@ -157,15 +163,8 @@ describe("auth service", () => {
         external_auth_id: "uid-multi",
       });
 
-      const [c1] = await getDb()
-        .insert(cohorts)
-        .values({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" })
-        .returning();
-
-      const [c2] = await getDb()
-        .insert(cohorts)
-        .values({ name: "Q2", start_date: "2026-04-01", end_date: "2026-06-30" })
-        .returning();
+      const c1 = await createWorkspaceAndCohort("Q1", "2026-01-01", "2026-03-31");
+      const c2 = await createWorkspaceAndCohort("Q2", "2026-04-01", "2026-06-30");
 
       await getDb().insert(userCohorts).values([
         { user_id: user.id, cohort_id: c1.id, role_in_cohort: "student" as const },

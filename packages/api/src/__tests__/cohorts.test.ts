@@ -70,6 +70,7 @@ const memberUser = {
 
 const sampleCohort = {
   id: "cohort-1",
+  workspace_id: "workspace-1",
   name: "Cohort Q1",
   start_date: "2026-01-01",
   end_date: "2026-03-31",
@@ -111,6 +112,7 @@ describe("Cohort endpoints", () => {
       expect(res.status).toBe(200);
       expect(res.body.cohorts).toHaveLength(1);
       expect(res.body.cohorts[0].name).toBe("Cohort Q1");
+      expect(res.body.cohorts[0].workspace_id).toBe("workspace-1");
     });
 
     it("returns 401 without auth", async () => {
@@ -126,6 +128,7 @@ describe("Cohort endpoints", () => {
       authenticateAs(adminUser);
       mockCreateCohort.mockResolvedValue({
         id: "cohort-new",
+        workspace_id: "workspace-new",
         name: "New Cohort",
         start_date: "2026-04-01",
         end_date: "2026-06-30",
@@ -139,6 +142,7 @@ describe("Cohort endpoints", () => {
 
       expect(res.status).toBe(201);
       expect(res.body.name).toBe("New Cohort");
+      expect(res.body.workspace_id).toBe("workspace-new");
     });
 
     it("returns 403 for non-admin", async () => {
@@ -203,6 +207,7 @@ describe("Cohort endpoints", () => {
 
       expect(res.status).toBe(200);
       expect(res.body.id).toBe("cohort-1");
+      expect(res.body.workspace_id).toBe("workspace-1");
       expect(res.body.member_count).toBe(5);
     });
 
@@ -234,6 +239,7 @@ describe("Cohort endpoints", () => {
         .send({ name: "Updated" });
 
       expect(res.status).toBe(200);
+      expect(res.body.workspace_id).toBe("workspace-1");
       expect(mockUpdateCohort).toHaveBeenCalledWith("cohort-1", { name: "Updated" });
     });
 

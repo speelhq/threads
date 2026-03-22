@@ -78,6 +78,7 @@ export async function getUserWithCohorts(userId: string) {
   const cohortRows = await getDb()
     .select({
       cohort_id: userCohorts.cohort_id,
+      workspace_id: cohorts.workspace_id,
       name: cohorts.name,
       role_in_cohort: userCohorts.role_in_cohort,
       start_date: cohorts.start_date,

@@ -6,16 +6,7 @@ import {
   timestamp,
   primaryKey,
 } from "drizzle-orm/pg-core";
-import { userRoleEnum, cohortRoleEnum } from "./enums.js";
-
-export const cohorts = pgTable("cohorts", {
-  id: uuid().primaryKey().defaultRandom(),
-  name: text().notNull(),
-  start_date: date().notNull(),
-  end_date: date().notNull(),
-  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
-});
+import { userRoleEnum, cohortRoleEnum, workspaceTypeEnum } from "./enums.js";
 
 export const users = pgTable("users", {
   id: uuid().primaryKey().defaultRandom(),
@@ -23,6 +14,27 @@ export const users = pgTable("users", {
   display_name: text().notNull(),
   role: userRoleEnum().notNull().default("member"),
   external_auth_id: text().notNull().unique(),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+
+export const workspaces = pgTable("workspaces", {
+  id: uuid().primaryKey().defaultRandom(),
+  type: workspaceTypeEnum().notNull(),
+  name: text().notNull(),
+  owner_id: uuid().references(() => users.id),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+
+export const cohorts = pgTable("cohorts", {
+  id: uuid().primaryKey().defaultRandom(),
+  workspace_id: uuid()
+    .notNull()
+    .references(() => workspaces.id),
+  name: text().notNull(),
+  start_date: date().notNull(),
+  end_date: date().notNull(),
   created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });

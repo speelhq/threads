@@ -1,11 +1,12 @@
 import { eq, desc, asc, sql, and } from "drizzle-orm";
 import { getDb } from "../db/connection.js";
-import { cohorts, users, userCohorts } from "../db/schema/auth.js";
+import { cohorts, users, userCohorts, workspaces } from "../db/schema/auth.js";
 
 export async function listCohorts() {
   const rows = await getDb()
     .select({
       id: cohorts.id,
+      workspace_id: cohorts.workspace_id,
       name: cohorts.name,
       start_date: cohorts.start_date,
       end_date: cohorts.end_date,
@@ -25,23 +26,33 @@ export async function createCohort(params: {
   start_date: string;
   end_date: string;
 }) {
-  const [row] = await getDb()
-    .insert(cohorts)
-    .values(params)
-    .returning({
-      id: cohorts.id,
-      name: cohorts.name,
-      start_date: cohorts.start_date,
-      end_date: cohorts.end_date,
-      created_at: cohorts.created_at,
-    });
-  return row;
+  return getDb().transaction(async (tx) => {
+    const [workspace] = await tx
+      .insert(workspaces)
+      .values({ type: "cohort", name: params.name })
+      .returning({ id: workspaces.id });
+
+    const [cohort] = await tx
+      .insert(cohorts)
+      .values({ ...params, workspace_id: workspace.id })
+      .returning({
+        id: cohorts.id,
+        workspace_id: cohorts.workspace_id,
+        name: cohorts.name,
+        start_date: cohorts.start_date,
+        end_date: cohorts.end_date,
+        created_at: cohorts.created_at,
+      });
+
+    return cohort;
+  });
 }
 
 export async function getCohortById(cohortId: string) {
   const [row] = await getDb()
     .select({
       id: cohorts.id,
+      workspace_id: cohorts.workspace_id,
       name: cohorts.name,
       start_date: cohorts.start_date,
       end_date: cohorts.end_date,
@@ -62,19 +73,30 @@ export async function updateCohort(
   cohortId: string,
   params: { name?: string; start_date?: string; end_date?: string },
 ) {
-  const [row] = await getDb()
-    .update(cohorts)
-    .set({ ...params, updated_at: new Date() })
-    .where(eq(cohorts.id, cohortId))
-    .returning({
-      id: cohorts.id,
-      name: cohorts.name,
-      start_date: cohorts.start_date,
-      end_date: cohorts.end_date,
-      created_at: cohorts.created_at,
-      updated_at: cohorts.updated_at,
-    });
-  return row ?? null;
+  return getDb().transaction(async (tx) => {
+    const [row] = await tx
+      .update(cohorts)
+      .set({ ...params, updated_at: new Date() })
+      .where(eq(cohorts.id, cohortId))
+      .returning({
+        id: cohorts.id,
+        workspace_id: cohorts.workspace_id,
+        name: cohorts.name,
+        start_date: cohorts.start_date,
+        end_date: cohorts.end_date,
+        created_at: cohorts.created_at,
+        updated_at: cohorts.updated_at,
+      });
+
+    if (row && params.name) {
+      await tx
+        .update(workspaces)
+        .set({ name: params.name, updated_at: new Date() })
+        .where(eq(workspaces.id, row.workspace_id));
+    }
+
+    return row ?? null;
+  });
 }
 
 export async function listMembers(cohortId: string) {

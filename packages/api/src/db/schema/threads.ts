@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { tagTypeEnum } from "./enums.js";
-import { users, cohorts } from "./auth.js";
+import { users, cohorts, workspaces } from "./auth.js";
 
 export const threads = pgTable(
   "threads",
@@ -18,9 +18,9 @@ export const threads = pgTable(
     user_id: uuid()
       .notNull()
       .references(() => users.id),
-    cohort_id: uuid()
+    workspace_id: uuid()
       .notNull()
-      .references(() => cohorts.id),
+      .references(() => workspaces.id),
     title: text().notNull(),
     pinned_at: timestamp({ withTimezone: true }),
     created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -28,7 +28,7 @@ export const threads = pgTable(
   },
   (t) => [
     index("idx_threads_user_id").on(t.user_id),
-    index("idx_threads_cohort_id").on(t.cohort_id),
+    index("idx_threads_workspace_id").on(t.workspace_id),
   ],
 );
 
