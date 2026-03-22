@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.js";
+import cohortRoutes from "./routes/cohorts.js";
 
 const app: Express = express();
 app.use(cors());
@@ -11,6 +12,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/cohorts", cohortRoutes);
 
 // Global error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

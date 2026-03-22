@@ -119,3 +119,24 @@ export async function resolveUser(
   req.user = user;
   next();
 }
+
+/**
+ * Requires the authenticated user to have admin role.
+ * Must be used after resolveUser.
+ */
+export function requireAdmin(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  if (!req.user || req.user.role !== "admin") {
+    res.status(403).json({
+      error: {
+        code: "FORBIDDEN",
+        message: "Admin access required",
+      },
+    });
+    return;
+  }
+  next();
+}
