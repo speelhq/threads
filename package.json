@@ -8,6 +8,9 @@
     "format": "oxfmt --write .",
     "test": "vitest run"
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "packageManager": "pnpm@10.29.3",
   "pnpm": {
     "onlyBuiltDependencies": [

@@ -17,7 +17,7 @@ import {
 const router: RouterType = Router();
 
 const signupSchema = z.object({
-  display_name: z.string().min(1).max(100),
+  display_name: z.string().trim().min(1).max(100),
 });
 
 // POST /auth/signup
