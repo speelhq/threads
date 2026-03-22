@@ -2,6 +2,7 @@
 
 export type UserRole = "admin" | "member";
 export type CohortRole = "student" | "instructor";
+export type WorkspaceType = "personal" | "cohort";
 export type TagType = "preset" | "custom";
 export type ReviewVerdict = "approved" | "needs_revision";
 
@@ -16,8 +17,18 @@ export type User = {
   updated_at: string;
 };
 
+export type Workspace = {
+  id: string;
+  type: WorkspaceType;
+  name: string;
+  owner_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Cohort = {
   id: string;
+  workspace_id: string;
   name: string;
   start_date: string;
   end_date: string;
@@ -45,6 +56,7 @@ export type LoginResponse = {
   role: UserRole;
   cohorts: {
     cohort_id: string;
+    workspace_id: string;
     name: string;
     role_in_cohort: CohortRole;
     start_date: string;
@@ -89,7 +101,7 @@ export type CohortMember = {
 export type Thread = {
   id: string;
   user_id: string;
-  cohort_id: string;
+  workspace_id: string;
   title: string;
   pinned_at: string | null;
   created_at: string;
@@ -181,7 +193,7 @@ export type ThreadListResponse = {
 export type ThreadDetailResponse = {
   id: string;
   title: string;
-  cohort_id: string;
+  workspace_id: string;
   pinned_at: string | null;
   tags: TagSummary[];
   messages: Omit<Message, "thread_id">[];
@@ -210,7 +222,7 @@ export type ThreadDetailResponse = {
 export type ThreadSummaryResponse = {
   id: string;
   title: string;
-  cohort_id: string;
+  workspace_id: string;
   pinned_at: string | null;
   tags: TagSummary[];
   incomplete_todo_count: number;
