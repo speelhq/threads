@@ -54,9 +54,6 @@ export const todos = pgTable(
     thread_id: uuid()
       .notNull()
       .references(() => threads.id, { onDelete: "cascade" }),
-    message_id: uuid().references(() => messages.id, {
-      onDelete: "set null",
-    }),
     content: text().notNull(),
     position: integer().notNull(),
     completed_at: timestamp({ withTimezone: true }),
@@ -78,9 +75,6 @@ export const bookmarks = pgTable(
     thread_id: uuid()
       .notNull()
       .references(() => threads.id, { onDelete: "cascade" }),
-    message_id: uuid().references(() => messages.id, {
-      onDelete: "set null",
-    }),
     url: text().notNull(),
     title: text(),
     description: text(),

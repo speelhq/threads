@@ -120,7 +120,6 @@ export type Message = {
 export type Todo = {
   id: string;
   thread_id: string;
-  message_id: string | null;
   content: string;
   position: number;
   completed_at: string | null;
@@ -131,7 +130,6 @@ export type Todo = {
 export type Bookmark = {
   id: string;
   thread_id: string;
-  message_id: string | null;
   url: string;
   title: string | null;
   description: string | null;
@@ -200,7 +198,6 @@ export type ThreadDetailResponse = {
   todos: {
     id: string;
     content: string;
-    message_id: string | null;
     position: number;
     completed_at: string | null;
     created_at: string;
@@ -211,7 +208,6 @@ export type ThreadDetailResponse = {
     title: string | null;
     description: string | null;
     domain: string;
-    message_id: string | null;
     position: number;
     created_at: string;
   }[];
@@ -265,7 +261,6 @@ export type ReorderMessagesResponse = {
 
 export type CreateTodoRequest = {
   content: string;
-  message_id?: string;
 };
 
 export type UpdateTodoRequest = {
@@ -276,7 +271,6 @@ export type UpdateTodoRequest = {
 export type TodoResponse = {
   id: string;
   content: string;
-  message_id: string | null;
   position: number;
   completed_at: string | null;
   created_at: string;
@@ -310,7 +304,6 @@ export type CrossThreadTodoResponse = {
 
 export type CreateBookmarkRequest = {
   url: string;
-  message_id?: string;
 };
 
 export type UpdateBookmarkRequest = {
@@ -324,7 +317,6 @@ export type BookmarkResponse = {
   title: string | null;
   description: string | null;
   domain: string;
-  message_id: string | null;
   position: number;
   created_at: string;
 };

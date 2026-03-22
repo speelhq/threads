@@ -1,5 +1,5 @@
 {
-  "id": "85344247-666c-4709-95ec-df2f1796e461",
+  "id": "d000a24b-8257-4597-bf66-057968c8e8fb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -309,12 +309,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "message_id": {
-          "name": "message_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "url": {
           "name": "url",
           "type": "text",
@@ -389,19 +383,6 @@
             "id"
           ],
           "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "bookmarks_message_id_messages_id_fk": {
-          "name": "bookmarks_message_id_messages_id_fk",
-          "tableFrom": "bookmarks",
-          "tableTo": "messages",
-          "columnsFrom": [
-            "message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -810,12 +791,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "message_id": {
-          "name": "message_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "content": {
           "name": "content",
           "type": "text",
@@ -894,19 +869,6 @@
             "id"
           ],
           "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "todos_message_id_messages_id_fk": {
-          "name": "todos_message_id_messages_id_fk",
-          "tableFrom": "todos",
-          "tableTo": "messages",
-          "columnsFrom": [
-            "message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
