@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
-import { db } from "../db/connection.js";
+import { getDb } from "../db/connection.js";
 import { users } from "../db/schema/index.js";
 import { userCohorts, cohorts } from "../db/schema/auth.js";
 
 export async function findUserByExternalId(externalAuthId: string) {
-  const [user] = await db
+  const [user] = await getDb()
     .select({
       id: users.id,
       email: users.email,
@@ -17,27 +17,51 @@ export async function findUserByExternalId(externalAuthId: string) {
   return user ?? null;
 }
 
+export class EmailAlreadyExistsError extends Error {
+  constructor() {
+    super("Email already exists");
+    this.name = "EmailAlreadyExistsError";
+  }
+}
+
 export async function createUser(params: {
   email: string;
   display_name: string;
   external_auth_id: string;
 }) {
-  const rows = await db
-    .insert(users)
-    .values(params)
-    .onConflictDoNothing({ target: users.external_auth_id })
-    .returning({
-      id: users.id,
-      email: users.email,
-      display_name: users.display_name,
-      role: users.role,
-      created_at: users.created_at,
-    });
-  return rows[0] ?? null;
+  try {
+    const rows = await getDb()
+      .insert(users)
+      .values(params)
+      .onConflictDoNothing({ target: users.external_auth_id })
+      .returning({
+        id: users.id,
+        email: users.email,
+        display_name: users.display_name,
+        role: users.role,
+        created_at: users.created_at,
+      });
+    return rows[0] ?? null;
+  } catch (err: unknown) {
+    // Drizzle wraps Postgres errors in DrizzleQueryError with the original as `cause`
+    const pgErr =
+      err instanceof Error && "cause" in err && err.cause ? err.cause : err;
+    if (
+      typeof pgErr === "object" &&
+      pgErr !== null &&
+      "code" in pgErr &&
+      (pgErr as { code: string }).code === "23505" &&
+      "constraint_name" in pgErr &&
+      (pgErr as { constraint_name: string }).constraint_name === "users_email_unique"
+    ) {
+      throw new EmailAlreadyExistsError();
+    }
+    throw err;
+  }
 }
 
 export async function getUserWithCohorts(userId: string) {
-  const [user] = await db
+  const [user] = await getDb()
     .select({
       id: users.id,
       email: users.email,
@@ -51,7 +75,7 @@ export async function getUserWithCohorts(userId: string) {
 
   if (!user) return null;
 
-  const cohortRows = await db
+  const cohortRows = await getDb()
     .select({
       cohort_id: userCohorts.cohort_id,
       name: cohorts.name,

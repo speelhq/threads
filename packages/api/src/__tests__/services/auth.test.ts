@@ -1,27 +1,28 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
-import { db, client } from "../../db/connection.js";
+import { getDb, getClient_UNSAFE } from "../../db/connection.js";
 import { users } from "../../db/schema/auth.js";
 import { cohorts, userCohorts } from "../../db/schema/auth.js";
 import {
   findUserByExternalId,
   createUser,
   getUserWithCohorts,
+  EmailAlreadyExistsError,
 } from "../../services/auth.js";
 
 beforeEach(async () => {
-  await db.delete(userCohorts);
-  await db.delete(cohorts);
-  await db.delete(users);
+  await getDb().delete(userCohorts);
+  await getDb().delete(cohorts);
+  await getDb().delete(users);
 });
 
 afterAll(async () => {
-  await client.end();
+  await getClient_UNSAFE().end();
 });
 
 describe("auth service", () => {
   describe("findUserByExternalId", () => {
     it("returns user when found", async () => {
-      await db.insert(users).values({
+      await getDb().insert(users).values({
         email: "test@example.com",
         display_name: "Test User",
         external_auth_id: "firebase-uid-1",
@@ -66,7 +67,7 @@ describe("auth service", () => {
       expect(user).not.toHaveProperty("external_auth_id");
     });
 
-    it("rejects duplicate email", async () => {
+    it("throws EmailAlreadyExistsError on duplicate email", async () => {
       await createUser({
         email: "dup@example.com",
         display_name: "User 1",
@@ -79,7 +80,7 @@ describe("auth service", () => {
           display_name: "User 2",
           external_auth_id: "uid-2",
         }),
-      ).rejects.toThrow();
+      ).rejects.toThrow(EmailAlreadyExistsError);
     });
 
     it("returns null on duplicate external_auth_id", async () => {
@@ -126,7 +127,7 @@ describe("auth service", () => {
         external_auth_id: "uid-student",
       });
 
-      const [cohort] = await db
+      const [cohort] = await getDb()
         .insert(cohorts)
         .values({
           name: "Cohort 2026-Q1",
@@ -135,7 +136,7 @@ describe("auth service", () => {
         })
         .returning();
 
-      await db.insert(userCohorts).values({
+      await getDb().insert(userCohorts).values({
         user_id: user.id,
         cohort_id: cohort.id,
         role_in_cohort: "student",
@@ -156,17 +157,17 @@ describe("auth service", () => {
         external_auth_id: "uid-multi",
       });
 
-      const [c1] = await db
+      const [c1] = await getDb()
         .insert(cohorts)
         .values({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" })
         .returning();
 
-      const [c2] = await db
+      const [c2] = await getDb()
         .insert(cohorts)
         .values({ name: "Q2", start_date: "2026-04-01", end_date: "2026-06-30" })
         .returning();
 
-      await db.insert(userCohorts).values([
+      await getDb().insert(userCohorts).values([
         { user_id: user.id, cohort_id: c1.id, role_in_cohort: "student" as const },
         { user_id: user.id, cohort_id: c2.id, role_in_cohort: "instructor" as const },
       ]);

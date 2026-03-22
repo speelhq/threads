@@ -11,6 +11,7 @@ import {
   findUserByExternalId,
   createUser,
   getUserWithCohorts,
+  EmailAlreadyExistsError,
 } from "../services/auth.js";
 
 const router: RouterType = Router();
@@ -37,11 +38,22 @@ router.post("/signup", verifyToken, async (req, res) => {
     return;
   }
 
-  const user = await createUser({
-    email: firebaseEmail,
-    display_name: parsed.data.display_name,
-    external_auth_id: firebaseUid,
-  });
+  let user;
+  try {
+    user = await createUser({
+      email: firebaseEmail,
+      display_name: parsed.data.display_name,
+      external_auth_id: firebaseUid,
+    });
+  } catch (err) {
+    if (err instanceof EmailAlreadyExistsError) {
+      res.status(409).json({
+        error: { code: "EMAIL_ALREADY_EXISTS", message: "Email already exists" },
+      });
+      return;
+    }
+    throw err;
+  }
 
   if (!user) {
     res.status(409).json({

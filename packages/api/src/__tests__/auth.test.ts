@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
-import app from "../index.js";
+import app from "../app.js";
 import {
   mockFirebaseToken,
   mockFirebaseTokenInvalid,
@@ -8,16 +8,21 @@ import {
 } from "./helpers.js";
 
 // Mock the auth service (resolveUser now uses findUserByExternalId internally)
-vi.mock("../services/auth.js", () => ({
-  findUserByExternalId: vi.fn(),
-  createUser: vi.fn(),
-  getUserWithCohorts: vi.fn(),
-}));
+vi.mock("../services/auth.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../services/auth.js")>();
+  return {
+    ...actual,
+    findUserByExternalId: vi.fn(),
+    createUser: vi.fn(),
+    getUserWithCohorts: vi.fn(),
+  };
+});
 
 import {
   findUserByExternalId,
   createUser,
   getUserWithCohorts,
+  EmailAlreadyExistsError,
 } from "../services/auth.js";
 
 const mockFindUser = findUserByExternalId as ReturnType<typeof vi.fn>;
@@ -138,6 +143,19 @@ describe("Auth endpoints", () => {
 
       expect(res.status).toBe(400);
       expect(res.body.error.code).toBe("VALIDATION_ERROR");
+    });
+
+    it("returns 409 EMAIL_ALREADY_EXISTS when email is taken by another uid", async () => {
+      mockFindUser.mockResolvedValue(null);
+      mockCreateUser.mockRejectedValue(new EmailAlreadyExistsError());
+
+      const res = await request(app)
+        .post("/auth/signup")
+        .set("Authorization", "Bearer valid-token")
+        .send({ display_name: "Test User" });
+
+      expect(res.status).toBe(409);
+      expect(res.body.error.code).toBe("EMAIL_ALREADY_EXISTS");
     });
 
     it("returns 400 when display_name exceeds 100 characters", async () => {
