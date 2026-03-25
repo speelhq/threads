@@ -120,6 +120,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     });
     this.handlers.set("threads.delete", async (p) => {
       const body = p as { id: string };
+      const answer = await vscode.window.showWarningMessage(
+        "このスレッドと配下のメッセージ・TODO・ブックマークが全て削除されます。",
+        { modal: true },
+        "削除",
+      );
+      if (answer !== "削除") return;
       return this.apiClient.deleteThread(body.id);
     });
 

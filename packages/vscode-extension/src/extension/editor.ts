@@ -101,7 +101,17 @@ export class EditorManager {
     });
     this.handlers.set("threads.delete", async (p) => {
       const { id } = p as { id: string };
-      return this.apiClient.deleteThread(id);
+      const answer = await vscode.window.showWarningMessage(
+        "このスレッドと配下のメッセージ・TODO・ブックマークが全て削除されます。",
+        { modal: true },
+        "削除",
+      );
+      if (answer !== "削除") return;
+      await this.apiClient.deleteThread(id);
+      const panel = this.panels.get(id);
+      if (panel) {
+        panel.dispose();
+      }
     });
 
     // Messages

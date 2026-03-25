@@ -90,7 +90,6 @@ function ThreadHeader({
   }
 
   async function handleDelete() {
-    // TODO: confirmation dialog via postMessage to Extension Host
     try {
       await deleteThread({ id: thread.id });
     } catch {
