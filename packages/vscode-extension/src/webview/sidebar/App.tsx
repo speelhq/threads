@@ -166,6 +166,8 @@ function ThreadListView() {
 }
 
 function ThreadItem({ thread }: { thread: ThreadSummary }) {
+  const { execute: openThread } = useCommand("threads.open");
+
   return (
     <li
       style={{
@@ -173,9 +175,7 @@ function ThreadItem({ thread }: { thread: ThreadSummary }) {
         cursor: "pointer",
         borderBottom: "1px solid var(--vscode-panel-border)",
       }}
-      onClick={() => {
-        // TODO: open editor tab via command
-      }}
+      onClick={() => void openThread({ id: thread.id, title: thread.title })}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
         {thread.pinned_at && <span title="Pinned">📌</span>}

@@ -2,12 +2,14 @@ import * as vscode from "vscode";
 import { AuthManager } from "./auth.js";
 import { ApiClient, ApiError } from "./api.js";
 import { SidebarProvider } from "./sidebar.js";
+import { EditorManager } from "./editor.js";
 
 const AUTH_CALLBACK_PAGE_URL = "http://localhost:5173/auth"; // TODO: configure per environment
 
 let authManager: AuthManager;
 let apiClient: ApiClient;
 let sidebarProvider: SidebarProvider;
+let editorManager: EditorManager;
 let pendingAuthState: string | null = null;
 
 async function fetchAndNotifyUser(): Promise<void> {
@@ -60,12 +62,16 @@ export function activate(context: vscode.ExtensionContext) {
     onUnauthorized: () => authManager.tryRefresh(),
   });
 
+  // Editor
+  editorManager = new EditorManager(context.extensionUri, apiClient);
+
   // Sidebar
   sidebarProvider = new SidebarProvider(
     context.extensionUri,
     authManager,
     apiClient,
   );
+  sidebarProvider.setEditorManager(editorManager);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("threads.sidebar", sidebarProvider),
   );

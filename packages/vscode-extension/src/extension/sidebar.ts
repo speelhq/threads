@@ -6,12 +6,14 @@ import type {
 } from "../protocol/index.js";
 import type { AuthManager } from "./auth.js";
 import type { ApiClient } from "./api.js";
+import type { EditorManager } from "./editor.js";
 
 type CommandHandler = (payload: unknown) => Promise<unknown>;
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | undefined;
   private handlers = new Map<string, CommandHandler>();
+  private editorManager: EditorManager | undefined;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -19,6 +21,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     private readonly apiClient: ApiClient,
   ) {
     this.registerHandlers();
+  }
+
+  setEditorManager(editorManager: EditorManager): void {
+    this.editorManager = editorManager;
   }
 
   resolveWebviewView(webviewView: vscode.WebviewView): void {
@@ -91,6 +97,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     });
     this.handlers.set("auth.logout", async () => {
       void vscode.commands.executeCommand("threads.logout");
+    });
+
+    // Open thread in editor tab
+    this.handlers.set("threads.open", async (p) => {
+      const { id, title } = p as { id: string; title: string };
+      this.editorManager?.openThread(id, title);
     });
 
     // Threads
