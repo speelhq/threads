@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { AuthManager } from "./auth.js";
-import { ApiClient } from "./api.js";
+import { ApiClient, ApiError } from "./api.js";
 
 const AUTH_CALLBACK_PAGE_URL = "http://localhost:5173/auth"; // TODO: configure per environment
 
@@ -21,10 +21,9 @@ async function fetchAndNotifyUser(): Promise<void> {
       cohorts: result.cohorts,
     });
   } catch (err) {
-    // User not found — attempt auto-signup
-    if (err instanceof Error && "code" in err && (err as { code: string }).code === "USER_NOT_FOUND") {
+    if (err instanceof ApiError && err.code === "USER_NOT_FOUND") {
       try {
-        const created = await apiClient.signup();
+        await apiClient.signup();
         const result = await apiClient.login();
         authManager.notify({
           user: {

@@ -1,3 +1,15 @@
+import type {
+  ThreadSummary,
+  ThreadDetail,
+  MessageItem,
+  TodoItem,
+  CrossThreadTodo,
+  BookmarkItem,
+  Tag,
+  AuthUser,
+  UserCohort,
+} from "../protocol/index.js";
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -15,6 +27,19 @@ type ApiClientConfig = {
   onUnauthorized: () => Promise<string | null>;
 };
 
+type LoginResponse = AuthUser & {
+  cohorts: UserCohort[];
+  created_at: string;
+};
+
+type SignupResponse = {
+  id: string;
+  email: string;
+  display_name: string;
+  role: "admin" | "member";
+  created_at: string;
+};
+
 export class ApiClient {
   private readonly baseUrl: string;
   private readonly getToken: () => string | null;
@@ -29,35 +54,15 @@ export class ApiClient {
   // ── Auth ──
 
   async login() {
-    return this.request<{
-      id: string;
-      email: string;
-      display_name: string;
-      role: "admin" | "member";
-      cohorts: {
-        cohort_id: string;
-        workspace_id: string;
-        name: string;
-        role_in_cohort: "student" | "instructor";
-        start_date: string;
-        end_date: string;
-      }[];
-      created_at: string;
-    }>("POST", "/auth/login");
+    return this.request<LoginResponse>("POST", "/auth/login");
   }
 
-  async signup() {
-    return this.request<{
-      id: string;
-      email: string;
-      display_name: string;
-      role: "admin" | "member";
-      created_at: string;
-    }>("POST", "/auth/signup");
+  async signup(body?: { display_name: string }) {
+    return this.request<SignupResponse>("POST", "/auth/signup", body);
   }
 
   async getMe() {
-    return this.login(); // Same response shape
+    return this.request<LoginResponse>("GET", "/auth/me");
   }
 
   // ── Threads ──
@@ -73,48 +78,54 @@ export class ApiClient {
     if (params?.search) query.set("search", params.search);
     if (params?.cursor) query.set("cursor", params.cursor);
     if (params?.limit) query.set("limit", String(params.limit));
-    const qs = query.toString();
-    return this.request("GET", `/threads${qs ? `?${qs}` : ""}`);
+    return this.get<{ threads: ThreadSummary[]; next_cursor: string | null }>(
+      "/threads",
+      query,
+    );
   }
 
   async getThread(id: string) {
-    return this.request("GET", `/threads/${id}`);
+    return this.request<ThreadDetail>("GET", `/threads/${id}`);
   }
 
   async createThread(body: { title: string; tag_ids?: string[] }) {
-    return this.request("POST", "/threads", body);
+    return this.request<ThreadSummary>("POST", "/threads", body);
   }
 
   async updateThread(
     id: string,
     body: { title?: string; pinned?: boolean },
   ) {
-    return this.request("PATCH", `/threads/${id}`, body);
+    return this.request<ThreadSummary>("PATCH", `/threads/${id}`, body);
   }
 
   async deleteThread(id: string) {
-    return this.request("DELETE", `/threads/${id}`);
+    return this.request<void>("DELETE", `/threads/${id}`);
   }
 
   // ── Messages ──
 
   async createMessage(threadId: string, body: { body: string }) {
-    return this.request("POST", `/threads/${threadId}/messages`, body);
+    return this.request<MessageItem>(
+      "POST",
+      `/threads/${threadId}/messages`,
+      body,
+    );
   }
 
   async updateMessage(id: string, body: { body: string }) {
-    return this.request("PATCH", `/messages/${id}`, body);
+    return this.request<MessageItem>("PATCH", `/messages/${id}`, body);
   }
 
   async deleteMessage(id: string) {
-    return this.request("DELETE", `/messages/${id}`);
+    return this.request<void>("DELETE", `/messages/${id}`);
   }
 
   async reorderMessages(
     threadId: string,
     body: { message_ids: string[] },
   ) {
-    return this.request(
+    return this.request<{ messages: { id: string; position: number }[] }>(
       "PATCH",
       `/threads/${threadId}/messages/reorder`,
       body,
@@ -132,64 +143,87 @@ export class ApiClient {
     query.set("completed", String(params.completed));
     if (params.cursor) query.set("cursor", params.cursor);
     if (params.limit) query.set("limit", String(params.limit));
-    return this.request("GET", `/todos?${query.toString()}`);
+    return this.get<{ todos: CrossThreadTodo[]; next_cursor: string | null }>(
+      "/todos",
+      query,
+    );
   }
 
   async createTodo(threadId: string, body: { content: string }) {
-    return this.request("POST", `/threads/${threadId}/todos`, body);
+    return this.request<TodoItem>(
+      "POST",
+      `/threads/${threadId}/todos`,
+      body,
+    );
   }
 
   async updateTodo(
     id: string,
     body: { content?: string; completed?: boolean },
   ) {
-    return this.request("PATCH", `/todos/${id}`, body);
+    return this.request<TodoItem>("PATCH", `/todos/${id}`, body);
   }
 
   async deleteTodo(id: string) {
-    return this.request("DELETE", `/todos/${id}`);
+    return this.request<void>("DELETE", `/todos/${id}`);
   }
 
   // ── Bookmarks ──
 
   async createBookmark(threadId: string, body: { url: string }) {
-    return this.request("POST", `/threads/${threadId}/bookmarks`, body);
+    return this.request<BookmarkItem>(
+      "POST",
+      `/threads/${threadId}/bookmarks`,
+      body,
+    );
   }
 
   async updateBookmark(
     id: string,
     body: { title?: string; description?: string },
   ) {
-    return this.request("PATCH", `/bookmarks/${id}`, body);
+    return this.request<BookmarkItem>("PATCH", `/bookmarks/${id}`, body);
   }
 
   async deleteBookmark(id: string) {
-    return this.request("DELETE", `/bookmarks/${id}`);
+    return this.request<void>("DELETE", `/bookmarks/${id}`);
   }
 
   // ── Tags ──
 
   async listTags(params: { cohortId: string }) {
-    return this.request("GET", `/tags?cohort_id=${params.cohortId}`);
+    const query = new URLSearchParams();
+    query.set("cohort_id", params.cohortId);
+    return this.get<{ tags: Tag[] }>("/tags", query);
   }
 
   async createTag(body: { name: string }) {
-    return this.request("POST", "/tags", body);
+    return this.request<Tag>("POST", "/tags", body);
   }
 
   async addThreadTag(threadId: string, tagId: string) {
-    return this.request("POST", `/threads/${threadId}/tags`, {
-      tag_id: tagId,
-    });
+    return this.request<{ thread_id: string; tag_id: string; created_at: string }>(
+      "POST",
+      `/threads/${threadId}/tags`,
+      { tag_id: tagId },
+    );
   }
 
   async removeThreadTag(threadId: string, tagId: string) {
-    return this.request("DELETE", `/threads/${threadId}/tags/${tagId}`);
+    return this.request<void>(
+      "DELETE",
+      `/threads/${threadId}/tags/${tagId}`,
+    );
   }
 
   // ── Internal ──
 
-  private async request<T = unknown>(
+  private async get<T>(path: string, query: URLSearchParams): Promise<T> {
+    const qs = query.toString();
+    return this.request<T>("GET", `${path}${qs ? `?${qs}` : ""}`);
+  }
+
+  private async request<T>(
     method: string,
     path: string,
     body?: unknown,
