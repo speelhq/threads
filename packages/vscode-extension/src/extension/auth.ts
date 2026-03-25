@@ -42,19 +42,19 @@ export class AuthManager {
    * Attempt to restore session from stored refresh token.
    * Called on extension activation.
    */
-  async restore(): Promise<void> {
+  async restore(): Promise<boolean> {
     const stored = await this.secrets.get(REFRESH_TOKEN_KEY);
-    if (!stored) return;
+    if (!stored) return false;
 
     this.setState("authenticating");
     try {
       await this.refreshIdToken(stored);
       this.setState("authenticated");
-      this.notify();
+      return true;
     } catch {
       await this.secrets.delete(REFRESH_TOKEN_KEY);
       this.setState("unauthenticated");
-      this.notify();
+      return false;
     }
   }
 
@@ -67,7 +67,6 @@ export class AuthManager {
     this.refreshToken = refreshToken;
     await this.secrets.store(REFRESH_TOKEN_KEY, refreshToken);
     this.setState("authenticated");
-    this.notify();
   }
 
   /**
@@ -93,7 +92,7 @@ export class AuthManager {
     this.refreshToken = null;
     await this.secrets.delete(REFRESH_TOKEN_KEY);
     this.setState("unauthenticated");
-    this.notify();
+    this.notify({ user: null, cohorts: null });
   }
 
   /**
@@ -127,11 +126,7 @@ export class AuthManager {
     this.state = newState;
   }
 
-  private notify(): void {
-    const payload: AuthStatePayload = {
-      user: null, // Populated by caller after API /auth/login
-      cohorts: null,
-    };
+  notify(payload: AuthStatePayload): void {
     for (const listener of this.listeners) {
       listener(payload);
     }
