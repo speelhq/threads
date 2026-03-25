@@ -257,7 +257,7 @@ describe("Thread endpoints", () => {
 
     it("returns 404 when not found", async () => {
       authenticateAs(studentUser);
-      mockGetThreadById.mockResolvedValue(null);
+      mockGetThreadOwnerId.mockResolvedValue(null);
 
       const res = await request(app)
         .get("/threads/nonexistent")
@@ -269,7 +269,6 @@ describe("Thread endpoints", () => {
 
     it("returns 403 for non-owner", async () => {
       authenticateAs(studentUser);
-      mockGetThreadById.mockResolvedValue(sampleThreadDetail);
       mockGetThreadOwnerId.mockResolvedValue("user-2");
 
       const res = await request(app)

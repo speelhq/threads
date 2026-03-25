@@ -1,4 +1,4 @@
-import { eq, and, desc, asc, sql, ilike, lt, isNull } from "drizzle-orm";
+import { eq, and, desc, asc, sql, lt, isNull } from "drizzle-orm";
 import { getDb } from "../db/connection.js";
 import { threads, messages, todos, bookmarks, tags, threadTags } from "../db/schema/threads.js";
 import { userCohorts, cohorts } from "../db/schema/auth.js";
@@ -36,7 +36,8 @@ export async function listThreads(params: {
   const conditions = [eq(threads.user_id, params.user_id)];
 
   if (params.search) {
-    conditions.push(ilike(threads.title, `%${params.search}%`));
+    const escaped = params.search.replace(/[%_\\]/g, "\\$&");
+    conditions.push(sql`${threads.title} ILIKE ${"%" + escaped + "%"} ESCAPE '\\'`);
   }
 
   if (params.cursor) {
@@ -150,21 +151,7 @@ export async function createThread(params: {
       });
 
     if (params.tag_ids && params.tag_ids.length > 0) {
-      // Validate tag_ids: must exist and be accessible
-      const validTags = await tx
-        .select({ id: tags.id })
-        .from(tags)
-        .where(
-          sql`${tags.id} IN ${params.tag_ids}`,
-        );
-
-      const validIds = new Set(validTags.map((t) => t.id));
-      const invalidIds = params.tag_ids.filter((id) => !validIds.has(id));
-      if (invalidIds.length > 0) {
-        throw new InvalidTagError(invalidIds);
-      }
-
-      // Check access: preset tags are OK, custom tags must be owned by user
+      // Validate: tags must exist AND be accessible (preset or own custom)
       const accessibleTags = await tx
         .select({ id: tags.id })
         .from(tags)
@@ -175,10 +162,10 @@ export async function createThread(params: {
           ),
         );
 
-      const accessibleIds = new Set(accessibleTags.map((t) => t.id));
-      const inaccessibleIds = params.tag_ids.filter((id) => !accessibleIds.has(id));
-      if (inaccessibleIds.length > 0) {
-        throw new InvalidTagError(inaccessibleIds);
+      if (accessibleTags.length !== params.tag_ids.length) {
+        const accessibleIds = new Set(accessibleTags.map((t) => t.id));
+        const invalidIds = params.tag_ids.filter((id) => !accessibleIds.has(id));
+        throw new InvalidTagError(invalidIds);
       }
 
       await tx.insert(threadTags).values(

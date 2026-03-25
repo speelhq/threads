@@ -104,16 +104,13 @@ router.get("/:id", verifyToken, resolveUser, async (req, res) => {
   const { user } = req as AuthenticatedRequest;
   const threadId = param(req, "id");
 
-  const thread = await getThreadById(threadId);
-  if (!thread) {
+  const ownerId = await getThreadOwnerId(threadId);
+  if (!ownerId) {
     res.status(404).json({
       error: { code: "NOT_FOUND", message: "Thread not found" },
     });
     return;
   }
-
-  // Ownership check via the full thread data
-  const ownerId = await getThreadOwnerId(threadId);
   if (ownerId !== user.id) {
     res.status(403).json({
       error: { code: "FORBIDDEN", message: "Access denied" },
@@ -121,6 +118,7 @@ router.get("/:id", verifyToken, resolveUser, async (req, res) => {
     return;
   }
 
+  const thread = await getThreadById(threadId);
   res.json(thread);
 });
 
