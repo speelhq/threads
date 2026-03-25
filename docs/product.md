@@ -86,6 +86,8 @@ PostgreSQLを選んだ理由は3つある。第一に、分析との相性。SQL
 
 **理由**: 同じ人がある期ではstudent、別の期ではinstructorになることがあり得る。コホートに属さないシステム管理者（admin）は`users.role`で判定し、`user_cohorts`には入らない。`users.role`の値は`admin`のみ意味を持ち、student / instructorの判定には使わない。
 
+**運用前提**: 受講生は同時に1つのコホートにのみ所属する。複数コホートへの同時所属はサポートしない。DB制約（UNIQUE）は入れていない。過去の所属履歴を`user_cohorts`に残す可能性があり、制約を入れると履歴保持ができなくなるため。万一重複登録されても、スレッドは`workspace_id`で紐づくため動作に影響しない。
+
 ### 3.3 URLネスト深度は2階層まで
 
 リソースのネストは2階層まで（例: `/threads/:id/messages`）とする。3階層以上はトップレベルに切り出す。たとえば`/reviews/:id/comments`であって`/submissions/:id/reviews/:id/comments`ではない。深いネストはURLが長くなるだけでなく、クライアント側で親リソースのIDを全て保持する必要があり実装コストが上がるため。
