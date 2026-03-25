@@ -6,6 +6,7 @@ export default defineConfig({
     globals: true,
     fileParallelism: false,
     setupFiles: ["./src/__tests__/setup.ts"],
+    exclude: ["dist/**", "node_modules/**"],
     env: {
       DATABASE_URL: "postgres://test:test@localhost:5433/threads_test",
     },

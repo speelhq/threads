@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
+import { sql } from "drizzle-orm";
 import { getDb, getClient_UNSAFE } from "../../db/connection.js";
 import { users, workspaces, cohorts, userCohorts } from "../../db/schema/auth.js";
 import {
@@ -21,10 +22,9 @@ async function createWorkspaceAndCohort(name: string, startDate: string, endDate
 }
 
 beforeEach(async () => {
-  await getDb().delete(userCohorts);
-  await getDb().delete(cohorts);
-  await getDb().delete(workspaces);
-  await getDb().delete(users);
+  await getDb().execute(
+    sql`TRUNCATE threads, thread_tags, tags, bookmarks, todos, messages, user_cohorts, cohorts, workspaces, users CASCADE`,
+  );
 });
 
 afterAll(async () => {
