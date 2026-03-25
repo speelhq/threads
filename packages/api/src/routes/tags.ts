@@ -22,11 +22,7 @@ import {
   CohortNotFoundError,
   ForbiddenError,
 } from "../services/tags.js";
-
-function param(req: { params: Record<string, string | string[]> }, key: string): string {
-  const val = req.params[key];
-  return Array.isArray(val) ? val[0] : val;
-}
+import { param } from "./helpers.js";
 
 const listTagsQuerySchema = z.object({
   cohort_id: z.uuid(),

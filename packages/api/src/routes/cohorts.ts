@@ -19,12 +19,9 @@ import {
   MemberAlreadyExistsError,
 } from "../services/cohorts.js";
 
-const router: RouterType = Router();
+import { param } from "./helpers.js";
 
-function param(req: { params: Record<string, string | string[]> }, key: string): string {
-  const val = req.params[key];
-  return Array.isArray(val) ? val[0] : val;
-}
+const router: RouterType = Router();
 
 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 

@@ -17,12 +17,9 @@ import {
   InvalidTagError,
 } from "../services/threads.js";
 
-const router: RouterType = Router();
+import { param } from "./helpers.js";
 
-function param(req: { params: Record<string, string | string[]> }, key: string): string {
-  const val = req.params[key];
-  return Array.isArray(val) ? val[0] : val;
-}
+const router: RouterType = Router();
 
 const createThreadSchema = z.object({
   title: z.string().trim().min(1).max(200),

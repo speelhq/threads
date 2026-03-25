@@ -17,11 +17,7 @@ import {
   InvalidMessageIdsError,
   IncompleteMessageIdsError,
 } from "../services/messages.js";
-
-function param(req: { params: Record<string, string | string[]> }, key: string): string {
-  const val = req.params[key];
-  return Array.isArray(val) ? val[0] : val;
-}
+import { param } from "./helpers.js";
 
 const createMessageSchema = z.object({
   body: z.string().trim().min(1).max(50000),

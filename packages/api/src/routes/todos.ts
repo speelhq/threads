@@ -15,11 +15,7 @@ import {
   deleteTodo,
   listCrossThreadTodos,
 } from "../services/todos.js";
-
-function param(req: { params: Record<string, string | string[]> }, key: string): string {
-  const val = req.params[key];
-  return Array.isArray(val) ? val[0] : val;
-}
+import { param } from "./helpers.js";
 
 const createTodoSchema = z.object({
   content: z.string().trim().min(1).max(1000),
