@@ -33,17 +33,17 @@ export type AuthState =
 export type AuthUser = {
   id: string;
   email: string;
-  display_name: string;
+  displayName: string;
   role: "admin" | "member";
 };
 
 export type UserCohort = {
-  cohort_id: string;
-  workspace_id: string;
+  cohortId: string;
+  workspaceId: string;
   name: string;
-  role_in_cohort: "student" | "instructor";
-  start_date: string;
-  end_date: string;
+  roleInCohort: "student" | "instructor";
+  startDate: string;
+  endDate: string;
 };
 
 export type AuthStatePayload = {
@@ -145,48 +145,54 @@ export type Tag = {
   id: string;
   name: string;
   type: "preset" | "custom";
-  cohort_id: string | null;
-  created_at: string;
+  cohortId: string | null;
+  createdAt: string;
 };
 
 export type ThreadSummary = {
   id: string;
   title: string;
-  pinned_at: string | null;
+  pinnedAt: string | null;
   tags: Tag[];
-  incomplete_todo_count: number;
-  created_at: string;
-  updated_at: string;
+  incompleteTodoCount: number;
+  createdAt: string;
+  updatedAt: string;
 };
 
-export type ThreadDetail = ThreadSummary & {
-  workspace_id: string;
+export type ThreadDetail = {
+  id: string;
+  title: string;
+  workspaceId: string;
+  pinnedAt: string | null;
+  tags: Tag[];
   messages: MessageItem[];
   todos: TodoItem[];
   bookmarks: BookmarkItem[];
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type MessageItem = {
   id: string;
   body: string;
   position: number;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type TodoItem = {
   id: string;
   content: string;
   position: number;
-  completed_at: string | null;
-  created_at: string;
+  completedAt: string | null;
+  createdAt: string;
 };
 
 export type CrossThreadTodo = {
   id: string;
   content: string;
-  completed_at: string | null;
-  created_at: string;
+  completedAt: string | null;
+  createdAt: string;
   thread: { id: string; title: string };
 };
 
@@ -197,5 +203,5 @@ export type BookmarkItem = {
   description: string | null;
   domain: string;
   position: number;
-  created_at: string;
+  createdAt: string;
 };

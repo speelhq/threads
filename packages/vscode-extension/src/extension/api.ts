@@ -29,15 +29,15 @@ type ApiClientConfig = {
 
 type LoginResponse = AuthUser & {
   cohorts: UserCohort[];
-  created_at: string;
+  createdAt: string;
 };
 
 type SignupResponse = {
   id: string;
   email: string;
-  display_name: string;
+  displayName: string;
   role: "admin" | "member";
-  created_at: string;
+  createdAt: string;
 };
 
 export class ApiClient {
@@ -78,7 +78,7 @@ export class ApiClient {
     if (params?.search) query.set("search", params.search);
     if (params?.cursor) query.set("cursor", params.cursor);
     if (params?.limit) query.set("limit", String(params.limit));
-    return this.get<{ threads: ThreadSummary[]; next_cursor: string | null }>(
+    return this.get<{ threads: ThreadSummary[]; nextCursor: string | null }>(
       "/threads",
       query,
     );
@@ -143,7 +143,7 @@ export class ApiClient {
     query.set("completed", String(params.completed));
     if (params.cursor) query.set("cursor", params.cursor);
     if (params.limit) query.set("limit", String(params.limit));
-    return this.get<{ todos: CrossThreadTodo[]; next_cursor: string | null }>(
+    return this.get<{ todos: CrossThreadTodo[]; nextCursor: string | null }>(
       "/todos",
       query,
     );
@@ -202,7 +202,7 @@ export class ApiClient {
   }
 
   async addThreadTag(threadId: string, tagId: string) {
-    return this.request<{ thread_id: string; tag_id: string; created_at: string }>(
+    return this.request<{ threadId: string; tagId: string; createdAt: string }>(
       "POST",
       `/threads/${threadId}/tags`,
       { tag_id: tagId },
@@ -286,6 +286,26 @@ export class ApiClient {
       );
     }
 
-    return data as T;
+    return snakeToCamel(data) as T;
   }
+}
+
+// ── snake_case → camelCase conversion ──
+
+function snakeToCamelKey(key: string): string {
+  return key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
+}
+
+function snakeToCamel(obj: unknown): unknown {
+  if (Array.isArray(obj)) {
+    return obj.map(snakeToCamel);
+  }
+  if (obj !== null && typeof obj === "object") {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+      result[snakeToCamelKey(key)] = snakeToCamel(value);
+    }
+    return result;
+  }
+  return obj;
 }

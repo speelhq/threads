@@ -82,7 +82,7 @@ function ThreadHeader({
 
   async function handleTogglePin() {
     try {
-      await updateThread({ id: thread.id, pinned: thread.pinned_at == null });
+      await updateThread({ id: thread.id, pinned: thread.pinnedAt == null });
       await onUpdate();
     } catch {
       // Error handled by useCommand
@@ -123,8 +123,8 @@ function ThreadHeader({
         </span>
       )}
 
-      <button onClick={() => void handleTogglePin()} style={iconButtonStyle} title={thread.pinned_at ? "Unpin" : "Pin"}>
-        {thread.pinned_at ? "📌" : "📍"}
+      <button onClick={() => void handleTogglePin()} style={iconButtonStyle} title={thread.pinnedAt ? "Unpin" : "Pin"}>
+        {thread.pinnedAt ? "📌" : "📍"}
       </button>
       <button onClick={() => void handleDelete()} style={iconButtonStyle} title="Delete thread">
         🗑️
@@ -333,13 +333,13 @@ function TodoPanel({
           }}>
             <input
               type="checkbox"
-              checked={todo.completed_at != null}
-              onChange={() => void handleToggle(todo.id, todo.completed_at == null)}
+              checked={todo.completedAt != null}
+              onChange={() => void handleToggle(todo.id, todo.completedAt == null)}
             />
             <span style={{
               flex: 1,
-              textDecoration: todo.completed_at ? "line-through" : "none",
-              opacity: todo.completed_at ? 0.5 : 1,
+              textDecoration: todo.completedAt ? "line-through" : "none",
+              opacity: todo.completedAt ? 0.5 : 1,
             }}>
               {todo.content}
             </span>

@@ -72,7 +72,7 @@ function ThreadListView() {
   const [tags, setTags] = useState<Tag[]>([]);
   const { execute: fetchThreads, loading } = useCommand<{
     threads: ThreadSummary[];
-    next_cursor: string | null;
+    nextCursor: string | null;
   }>("threads.list");
   const { execute: fetchTags } = useCommand<{ tags: Tag[] }>("tags.list");
   const { execute: createThread } = useCommand<ThreadSummary>("threads.create");
@@ -178,10 +178,10 @@ function ThreadItem({ thread }: { thread: ThreadSummary }) {
       onClick={() => void openThread({ id: thread.id, title: thread.title })}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-        {thread.pinned_at && <span title="Pinned">📌</span>}
+        {thread.pinnedAt && <span title="Pinned">📌</span>}
         <span style={{ fontWeight: 500 }}>{thread.title}</span>
-        {thread.incomplete_todo_count > 0 && (
-          <span style={badgeStyle}>{thread.incomplete_todo_count}</span>
+        {thread.incompleteTodoCount > 0 && (
+          <span style={badgeStyle}>{thread.incompleteTodoCount}</span>
         )}
       </div>
       {thread.tags.length > 0 && (
@@ -201,7 +201,7 @@ function TodoListView() {
   const [todos, setTodos] = useState<CrossThreadTodo[]>([]);
   const { execute: fetchTodos, loading } = useCommand<{
     todos: CrossThreadTodo[];
-    next_cursor: string | null;
+    nextCursor: string | null;
   }>("todos.listCrossThread");
   const { execute: updateTodo } = useCommand("todos.update");
 
@@ -245,8 +245,8 @@ function TodoListView() {
           >
             <input
               type="checkbox"
-              checked={todo.completed_at != null}
-              onChange={() => void toggleTodo(todo.id, todo.completed_at == null)}
+              checked={todo.completedAt != null}
+              onChange={() => void toggleTodo(todo.id, todo.completedAt == null)}
             />
             <div>
               <div>{todo.content}</div>

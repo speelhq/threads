@@ -19,7 +19,7 @@ async function fetchAndNotifyUser(): Promise<void> {
       user: {
         id: result.id,
         email: result.email,
-        display_name: result.display_name,
+        displayName: result.displayName,
         role: result.role,
       },
       cohorts: result.cohorts,
@@ -33,7 +33,7 @@ async function fetchAndNotifyUser(): Promise<void> {
           user: {
             id: result.id,
             email: result.email,
-            display_name: result.display_name,
+            displayName: result.displayName,
             role: result.role,
           },
           cohorts: result.cohorts,
