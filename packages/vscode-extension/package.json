@@ -1,0 +1,80 @@
+{
+  "name": "threads",
+  "displayName": "Threads",
+  "description": "Thread-based note taking for programming students",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./dist/extension/index.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "threads",
+          "title": "Threads",
+          "icon": "$(notebook)"
+        }
+      ]
+    },
+    "views": {
+      "threads": [
+        {
+          "type": "webview",
+          "id": "threads.sidebar",
+          "name": "Threads"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "threads.login",
+        "title": "Threads: Sign in with Google"
+      },
+      {
+        "command": "threads.logout",
+        "title": "Threads: Sign out"
+      },
+      {
+        "command": "threads.newThread",
+        "title": "Threads: New Thread"
+      }
+    ],
+    "configuration": {
+      "title": "Threads",
+      "properties": {
+        "threads.apiBaseUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Base URL of the Threads API server"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "pnpm run build:extension && pnpm run build:webview",
+    "build:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "build:webview": "vite build",
+    "dev": "concurrently \"pnpm run dev:extension\" \"pnpm run dev:webview\"",
+    "dev:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.js --external:vscode --format=cjs --platform=node --sourcemap --watch",
+    "dev:webview": "vite build --watch"
+  },
+  "dependencies": {
+    "@threads/shared": "workspace:*",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/vscode": "^1.110.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.27.4",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.2"
+  }
+}
