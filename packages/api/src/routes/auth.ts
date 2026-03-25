@@ -17,7 +17,7 @@ import {
 const router: RouterType = Router();
 
 const signupSchema = z.object({
-  display_name: z.string().trim().min(1).max(100),
+  display_name: z.string().trim().min(1).max(100).optional(),
 });
 
 // POST /auth/signup
@@ -28,7 +28,19 @@ router.post("/signup", verifyToken, async (req, res) => {
     return;
   }
 
-  const { firebaseUid, firebaseEmail } = req as TokenVerifiedRequest;
+  const { firebaseUid, firebaseEmail, firebaseName } =
+    req as TokenVerifiedRequest;
+
+  const displayName = parsed.data?.display_name ?? firebaseName;
+  if (!displayName) {
+    res.status(400).json({
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "display_name is required (not provided in body or token)",
+      },
+    });
+    return;
+  }
 
   const existing = await findUserByExternalId(firebaseUid);
   if (existing) {
@@ -42,7 +54,7 @@ router.post("/signup", verifyToken, async (req, res) => {
   try {
     user = await createUser({
       email: firebaseEmail,
-      display_name: parsed.data.display_name,
+      display_name: displayName,
       external_auth_id: firebaseUid,
     });
   } catch (err) {

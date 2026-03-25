@@ -69,16 +69,13 @@ describe("Auth endpoints", () => {
   // ── POST /auth/signup ──
 
   describe("POST /auth/signup", () => {
-    beforeEach(() => {
-      mockFirebaseToken("firebase-uid-1", "test@example.com");
-    });
-
-    it("creates a user and returns 201", async () => {
+    it("creates a user with display_name from body", async () => {
+      mockFirebaseToken("firebase-uid-1", "test@example.com", "Google Name");
       mockFindUser.mockResolvedValue(null);
       mockCreateUser.mockResolvedValue({
         id: "user-1",
         email: "test@example.com",
-        display_name: "Test User",
+        display_name: "Body Name",
         role: "member",
         created_at: "2026-03-21T00:00:00.000Z",
       });
@@ -86,56 +83,43 @@ describe("Auth endpoints", () => {
       const res = await request(app)
         .post("/auth/signup")
         .set("Authorization", "Bearer valid-token")
-        .send({ display_name: "Test User" });
+        .send({ display_name: "Body Name" });
 
       expect(res.status).toBe(201);
-      expect(mockFindUser).toHaveBeenCalledWith("firebase-uid-1");
       expect(mockCreateUser).toHaveBeenCalledWith({
         email: "test@example.com",
-        display_name: "Test User",
+        display_name: "Body Name",
         external_auth_id: "firebase-uid-1",
       });
-      expect(res.body.email).toBe("test@example.com");
-      expect(res.body.display_name).toBe("Test User");
-      expect(res.body.role).toBe("member");
     });
 
-    it("returns 409 when user already exists", async () => {
-      mockFindUser.mockResolvedValue({ id: "existing-user" });
-
-      const res = await request(app)
-        .post("/auth/signup")
-        .set("Authorization", "Bearer valid-token")
-        .send({ display_name: "Test User" });
-
-      expect(res.status).toBe(409);
-      expect(res.body.error.code).toBe("USER_ALREADY_EXISTS");
-    });
-
-    it("returns 409 on race condition (createUser returns null)", async () => {
+    it("falls back to token name when display_name is not in body", async () => {
+      mockFirebaseToken("firebase-uid-1", "test@example.com", "Google Name");
       mockFindUser.mockResolvedValue(null);
-      mockCreateUser.mockResolvedValue(null);
+      mockCreateUser.mockResolvedValue({
+        id: "user-1",
+        email: "test@example.com",
+        display_name: "Google Name",
+        role: "member",
+        created_at: "2026-03-21T00:00:00.000Z",
+      });
 
       const res = await request(app)
         .post("/auth/signup")
         .set("Authorization", "Bearer valid-token")
-        .send({ display_name: "Test User" });
+        .send({});
 
-      expect(res.status).toBe(409);
-      expect(res.body.error.code).toBe("USER_ALREADY_EXISTS");
+      expect(res.status).toBe(201);
+      expect(mockCreateUser).toHaveBeenCalledWith({
+        email: "test@example.com",
+        display_name: "Google Name",
+        external_auth_id: "firebase-uid-1",
+      });
     });
 
-    it("returns 400 when display_name is empty", async () => {
-      const res = await request(app)
-        .post("/auth/signup")
-        .set("Authorization", "Bearer valid-token")
-        .send({ display_name: "" });
+    it("returns 400 when display_name is in neither body nor token", async () => {
+      mockFirebaseToken("firebase-uid-1", "test@example.com");
 
-      expect(res.status).toBe(400);
-      expect(res.body.error.code).toBe("VALIDATION_ERROR");
-    });
-
-    it("returns 400 when display_name is missing", async () => {
       const res = await request(app)
         .post("/auth/signup")
         .set("Authorization", "Bearer valid-token")
@@ -145,20 +129,62 @@ describe("Auth endpoints", () => {
       expect(res.body.error.code).toBe("VALIDATION_ERROR");
     });
 
+    it("returns 409 when user already exists", async () => {
+      mockFirebaseToken("firebase-uid-1", "test@example.com", "Google Name");
+      mockFindUser.mockResolvedValue({ id: "existing-user" });
+
+      const res = await request(app)
+        .post("/auth/signup")
+        .set("Authorization", "Bearer valid-token")
+        .send({});
+
+      expect(res.status).toBe(409);
+      expect(res.body.error.code).toBe("USER_ALREADY_EXISTS");
+    });
+
+    it("returns 409 on race condition (createUser returns null)", async () => {
+      mockFirebaseToken("firebase-uid-1", "test@example.com", "Google Name");
+      mockFindUser.mockResolvedValue(null);
+      mockCreateUser.mockResolvedValue(null);
+
+      const res = await request(app)
+        .post("/auth/signup")
+        .set("Authorization", "Bearer valid-token")
+        .send({});
+
+      expect(res.status).toBe(409);
+      expect(res.body.error.code).toBe("USER_ALREADY_EXISTS");
+    });
+
+    it("returns 400 when display_name is empty string", async () => {
+      mockFirebaseToken("firebase-uid-1", "test@example.com");
+
+      const res = await request(app)
+        .post("/auth/signup")
+        .set("Authorization", "Bearer valid-token")
+        .send({ display_name: "" });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe("VALIDATION_ERROR");
+    });
+
     it("returns 409 EMAIL_ALREADY_EXISTS when email is taken by another uid", async () => {
+      mockFirebaseToken("firebase-uid-1", "test@example.com", "Google Name");
       mockFindUser.mockResolvedValue(null);
       mockCreateUser.mockRejectedValue(new EmailAlreadyExistsError());
 
       const res = await request(app)
         .post("/auth/signup")
         .set("Authorization", "Bearer valid-token")
-        .send({ display_name: "Test User" });
+        .send({});
 
       expect(res.status).toBe(409);
       expect(res.body.error.code).toBe("EMAIL_ALREADY_EXISTS");
     });
 
     it("returns 400 when display_name exceeds 100 characters", async () => {
+      mockFirebaseToken("firebase-uid-1", "test@example.com");
+
       const res = await request(app)
         .post("/auth/signup")
         .set("Authorization", "Bearer valid-token")

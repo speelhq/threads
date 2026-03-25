@@ -6,8 +6,12 @@ const mockVerifyIdToken = auth.verifyIdToken as ReturnType<typeof vi.fn>;
 /**
  * Configure the Firebase mock to return a valid decoded token.
  */
-export function mockFirebaseToken(uid: string, email: string) {
-  mockVerifyIdToken.mockResolvedValue({ uid, email });
+export function mockFirebaseToken(
+  uid: string,
+  email: string,
+  name?: string,
+) {
+  mockVerifyIdToken.mockResolvedValue({ uid, email, name });
 }
 
 /**

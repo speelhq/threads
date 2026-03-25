@@ -13,6 +13,7 @@ export type AuthUser = {
 export type TokenVerifiedRequest = Request & {
   firebaseUid: string;
   firebaseEmail: string;
+  firebaseName?: string;
 };
 
 /** Request after verifyToken + resolveUser have run. */
@@ -26,6 +27,7 @@ declare global {
       user?: AuthUser;
       firebaseUid?: string;
       firebaseEmail?: string;
+      firebaseName?: string;
     }
   }
 }
@@ -82,6 +84,7 @@ export async function verifyToken(
 
   req.firebaseUid = decoded.uid;
   req.firebaseEmail = decoded.email;
+  req.firebaseName = decoded.name;
   next();
 }
 
