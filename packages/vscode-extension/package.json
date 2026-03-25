@@ -4,6 +4,7 @@
   "description": "Thread-based note taking for programming students",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "engines": {
     "vscode": "^1.110.0"
   },
