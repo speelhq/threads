@@ -5,6 +5,7 @@ import cohortRoutes from "./routes/cohorts.js";
 import threadRoutes from "./routes/threads.js";
 import { threadMessageRoutes, messageRoutes } from "./routes/messages.js";
 import { threadTodoRoutes, todoRoutes } from "./routes/todos.js";
+import { threadBookmarkRoutes, bookmarkRoutes } from "./routes/bookmarks.js";
 
 const app: Express = express();
 app.use(cors());
@@ -21,6 +22,8 @@ app.use("/threads", threadMessageRoutes);
 app.use("/messages", messageRoutes);
 app.use("/threads", threadTodoRoutes);
 app.use("/todos", todoRoutes);
+app.use("/threads", threadBookmarkRoutes);
+app.use("/bookmarks", bookmarkRoutes);
 
 // Global error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
