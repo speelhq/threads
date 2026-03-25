@@ -166,7 +166,9 @@ export async function listCrossThreadTodos(params: {
 }) {
   const conditions = [eq(threads.user_id, params.user_id)];
 
-  if (!params.completed) {
+  if (params.completed) {
+    conditions.push(sql`${todos.completed_at} IS NOT NULL`);
+  } else {
     conditions.push(isNull(todos.completed_at));
   }
 

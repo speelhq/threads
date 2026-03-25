@@ -117,6 +117,9 @@ CREATE INDEX "idx_bookmarks_thread_id" ON "bookmarks" USING btree ("thread_id");
 CREATE INDEX "idx_messages_thread_id" ON "messages" USING btree ("thread_id");--> statement-breakpoint
 CREATE INDEX "idx_tags_cohort_id" ON "tags" USING btree ("cohort_id");--> statement-breakpoint
 CREATE INDEX "idx_tags_created_by" ON "tags" USING btree ("created_by");--> statement-breakpoint
+CREATE UNIQUE INDEX "idx_tags_custom_unique" ON "tags" USING btree ("created_by","name") WHERE type = 'custom';--> statement-breakpoint
+CREATE UNIQUE INDEX "idx_tags_preset_cohort_unique" ON "tags" USING btree ("cohort_id","name") WHERE type = 'preset' AND cohort_id IS NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "idx_tags_preset_global_unique" ON "tags" USING btree ("name") WHERE type = 'preset' AND cohort_id IS NULL;--> statement-breakpoint
 CREATE INDEX "idx_threads_user_id" ON "threads" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "idx_threads_workspace_id" ON "threads" USING btree ("workspace_id");--> statement-breakpoint
 CREATE INDEX "idx_todos_thread_id" ON "todos" USING btree ("thread_id");--> statement-breakpoint

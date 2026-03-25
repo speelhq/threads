@@ -1,5 +1,5 @@
 {
-  "id": "d000a24b-8257-4597-bf66-057968c8e8fb",
+  "id": "3fe37305-02aa-4d03-becc-87596ac80468",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -552,6 +552,66 @@
             }
           ],
           "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_tags_custom_unique": {
+          "name": "idx_tags_custom_unique",
+          "columns": [
+            {
+              "expression": "created_by",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "type = 'custom'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_tags_preset_cohort_unique": {
+          "name": "idx_tags_preset_cohort_unique",
+          "columns": [
+            {
+              "expression": "cohort_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "type = 'preset' AND cohort_id IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_tags_preset_global_unique": {
+          "name": "idx_tags_preset_global_unique",
+          "columns": [
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "type = 'preset' AND cohort_id IS NULL",
           "concurrently": false,
           "method": "btree",
           "with": {}

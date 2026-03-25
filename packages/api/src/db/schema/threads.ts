@@ -5,6 +5,7 @@ import {
   integer,
   timestamp,
   index,
+  uniqueIndex,
   primaryKey,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
@@ -102,6 +103,15 @@ export const tags = pgTable(
   (t) => [
     index("idx_tags_cohort_id").on(t.cohort_id),
     index("idx_tags_created_by").on(t.created_by),
+    uniqueIndex("idx_tags_custom_unique")
+      .on(t.created_by, t.name)
+      .where(sql`type = 'custom'`),
+    uniqueIndex("idx_tags_preset_cohort_unique")
+      .on(t.cohort_id, t.name)
+      .where(sql`type = 'preset' AND cohort_id IS NOT NULL`),
+    uniqueIndex("idx_tags_preset_global_unique")
+      .on(t.name)
+      .where(sql`type = 'preset' AND cohort_id IS NULL`),
   ],
 );
 

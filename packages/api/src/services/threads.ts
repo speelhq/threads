@@ -176,9 +176,18 @@ export async function createThread(params: {
       );
     }
 
+    // Fetch inserted tags for response
+    let threadTags_: { id: string; name: string; type: string }[] = [];
+    if (params.tag_ids && params.tag_ids.length > 0) {
+      threadTags_ = await tx
+        .select({ id: tags.id, name: tags.name, type: tags.type })
+        .from(tags)
+        .where(sql`${tags.id} IN ${params.tag_ids}`);
+    }
+
     return {
       ...thread,
-      tags: [] as { id: string; name: string; type: string }[],
+      tags: threadTags_,
       incomplete_todo_count: 0,
     };
   });
