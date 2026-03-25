@@ -16,6 +16,7 @@ export class AuthManager {
   private state: AuthState = "unauthenticated";
   private idToken: string | null = null;
   private refreshToken: string | null = null;
+  private lastPayload: AuthStatePayload = { user: null, cohorts: null };
   private listeners: AuthStateListener[] = [];
 
   constructor(
@@ -29,6 +30,10 @@ export class AuthManager {
 
   getIdToken(): string | null {
     return this.idToken;
+  }
+
+  getLastPayload(): AuthStatePayload {
+    return this.lastPayload;
   }
 
   onStateChange(listener: AuthStateListener): vscode.Disposable {
@@ -127,6 +132,7 @@ export class AuthManager {
   }
 
   notify(payload: AuthStatePayload): void {
+    this.lastPayload = payload;
     for (const listener of this.listeners) {
       listener(payload);
     }

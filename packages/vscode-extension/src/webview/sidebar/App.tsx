@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { onEvent, useCommand } from "../hooks/useCommand.js";
 import type { ThreadSummary, CrossThreadTodo, Tag } from "../../protocol/index.js";
 
@@ -67,6 +67,7 @@ function ViewSwitcher({ view, onSwitch }: { view: View; onSwitch: (v: View) => v
 function ThreadListView() {
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [tagId, setTagId] = useState<string | undefined>();
   const [tags, setTags] = useState<Tag[]>([]);
   const { execute: fetchThreads, loading } = useCommand<{
@@ -75,10 +76,17 @@ function ThreadListView() {
   }>("threads.list");
   const { execute: fetchTags } = useCommand<{ tags: Tag[] }>("tags.list");
   const { execute: createThread } = useCommand<ThreadSummary>("threads.create");
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(debounceTimer.current);
+  }, [search]);
 
   useEffect(() => {
     void loadThreads();
-  }, [search, tagId]);
+  }, [debouncedSearch, tagId]);
 
   useEffect(() => {
     // TODO: get cohortId from auth state
@@ -95,7 +103,7 @@ function ThreadListView() {
 
   async function loadThreads() {
     try {
-      const result = await fetchThreads({ search: search || undefined, tagId });
+      const result = await fetchThreads({ search: debouncedSearch || undefined, tagId });
       setThreads(result.threads);
     } catch {
       // Error handled by useCommand

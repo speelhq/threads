@@ -52,10 +52,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private pushAuthState(): void {
-    // Will be populated with real data by the auth state listener
-    this.pushEvent("auth.stateChanged", {
-      state: this.authManager.getState(),
-    });
+    this.pushEvent("auth.stateChanged", this.authManager.getLastPayload());
   }
 
   private async handleRequest(
@@ -135,11 +132,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.extensionUri, "dist", "webview", "sidebar.js"),
     );
+    const csp = `default-src 'none'; script-src ${webview.cspSource}; style-src 'unsafe-inline';`;
 
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="${csp}" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Threads</title>
   <style>
