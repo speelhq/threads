@@ -3,6 +3,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.js";
 import cohortRoutes from "./routes/cohorts.js";
 import threadRoutes from "./routes/threads.js";
+import { threadMessageRoutes, messageRoutes } from "./routes/messages.js";
 
 const app: Express = express();
 app.use(cors());
@@ -15,6 +16,8 @@ app.get("/health", (_req, res) => {
 app.use("/auth", authRoutes);
 app.use("/cohorts", cohortRoutes);
 app.use("/threads", threadRoutes);
+app.use("/threads", threadMessageRoutes);
+app.use("/messages", messageRoutes);
 
 // Global error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
