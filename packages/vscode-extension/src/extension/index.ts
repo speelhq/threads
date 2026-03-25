@@ -1,14 +1,14 @@
 import * as vscode from "vscode";
 import { AuthManager } from "./auth.js";
 
-const FIREBASE_API_KEY = ""; // TODO: inject via configuration
 const AUTH_CALLBACK_PAGE_URL = "http://localhost:5173/auth"; // TODO: configure per environment
 
 let authManager: AuthManager;
+let pendingAuthState: string | null = null;
 
 export function activate(context: vscode.ExtensionContext) {
   const config = vscode.workspace.getConfiguration("threads");
-  const apiKey = FIREBASE_API_KEY || config.get<string>("firebaseApiKey", "");
+  const apiKey = config.get<string>("firebaseApiKey", "");
 
   authManager = new AuthManager(context.secrets, apiKey);
 
@@ -28,7 +28,12 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
-        // TODO: validate state parameter against stored value
+        if (!pendingAuthState || state !== pendingAuthState) {
+          vscode.window.showErrorMessage("Authentication failed: invalid state");
+          return;
+        }
+        pendingAuthState = null;
+
         void authManager.handleCallback(idToken, refreshToken);
       },
     }),
@@ -37,9 +42,8 @@ export function activate(context: vscode.ExtensionContext) {
   // Commands
   context.subscriptions.push(
     vscode.commands.registerCommand("threads.login", () => {
-      const state = crypto.randomUUID();
-      // TODO: store state for validation
-      authManager.startLogin(AUTH_CALLBACK_PAGE_URL, state);
+      pendingAuthState = crypto.randomUUID();
+      authManager.startLogin(AUTH_CALLBACK_PAGE_URL, pendingAuthState);
     }),
   );
 

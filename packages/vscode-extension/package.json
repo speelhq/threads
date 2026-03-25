@@ -51,6 +51,11 @@
           "type": "string",
           "default": "http://localhost:3000",
           "description": "Base URL of the Threads API server"
+        },
+        "threads.firebaseApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Firebase Web API Key for authentication"
         }
       }
     }
