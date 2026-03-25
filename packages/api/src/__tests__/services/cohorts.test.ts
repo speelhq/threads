@@ -145,7 +145,10 @@ describe("cohorts service", () => {
       const user = await createTestUser("alice@test.com", "Alice");
 
       const result = await addMember({ cohort_id: cohort.id, user_id: user.id, role_in_cohort: "student" });
-      expect("data" in result && result.data.role_in_cohort).toBe("student");
+      expect("data" in result).toBe(true);
+      if ("data" in result) {
+        expect(result.data!.role_in_cohort).toBe("student");
+      }
 
       const members = await listMembers(cohort.id);
       expect(members).toHaveLength(1);
