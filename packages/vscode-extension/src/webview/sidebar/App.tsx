@@ -31,32 +31,40 @@ function LoginView() {
   const { execute, loading, error } = useCommand("auth.login");
 
   return (
-    <div style={{ padding: "16px", textAlign: "center" }}>
+    <div className="p-4 text-center">
       <p>Sign in to start taking notes.</p>
       <button
         onClick={() => void execute()}
         disabled={loading}
-        style={buttonStyle}
+        className="bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
       >
         {loading ? "Opening browser..." : "Sign in with Google"}
       </button>
-      {error && <p style={{ color: "var(--vscode-errorForeground)" }}>{error.message}</p>}
+      {error && <p className="text-[var(--vscode-errorForeground)]">{error.message}</p>}
     </div>
   );
 }
 
 function ViewSwitcher({ view, onSwitch }: { view: View; onSwitch: (v: View) => void }) {
   return (
-    <div style={{ display: "flex", borderBottom: "1px solid var(--vscode-panel-border)" }}>
+    <div className="flex border-b border-[var(--vscode-panel-border)]">
       <button
         onClick={() => onSwitch("threads")}
-        style={tabStyle(view === "threads")}
+        className={`flex-1 p-2 bg-transparent border-none cursor-pointer border-b-2 ${
+          view === "threads"
+            ? "text-[var(--vscode-foreground)] border-b-[var(--vscode-focusBorder)]"
+            : "text-[var(--vscode-disabledForeground)] border-b-transparent"
+        }`}
       >
         Threads
       </button>
       <button
         onClick={() => onSwitch("todos")}
-        style={tabStyle(view === "todos")}
+        className={`flex-1 p-2 bg-transparent border-none cursor-pointer border-b-2 ${
+          view === "todos"
+            ? "text-[var(--vscode-foreground)] border-b-[var(--vscode-focusBorder)]"
+            : "text-[var(--vscode-disabledForeground)] border-b-transparent"
+        }`}
       >
         TODOs
       </button>
@@ -121,16 +129,19 @@ function ThreadListView() {
   }
 
   return (
-    <div style={{ padding: "8px" }}>
-      <div style={{ display: "flex", gap: "4px", marginBottom: "8px" }}>
+    <div className="p-2">
+      <div className="flex gap-1 mb-2">
         <input
           type="text"
           placeholder="Search threads..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={inputStyle}
+          className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 flex-1 rounded-sm"
         />
-        <button onClick={() => void handleNewThread()} style={buttonStyle}>
+        <button
+          onClick={() => void handleNewThread()}
+          className="bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
+        >
           +
         </button>
       </div>
@@ -139,7 +150,7 @@ function ThreadListView() {
         <select
           value={tagId ?? ""}
           onChange={(e) => setTagId(e.target.value || undefined)}
-          style={inputStyle}
+          className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 flex-1 rounded-sm"
         >
           <option value="">All tags</option>
           {tags.map((tag) => (
@@ -150,16 +161,16 @@ function ThreadListView() {
         </select>
       )}
 
-      {loading && <p style={{ opacity: 0.5 }}>Loading...</p>}
+      {loading && <p className="opacity-50">Loading...</p>}
 
-      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+      <ul className="list-none">
         {threads.map((thread) => (
           <ThreadItem key={thread.id} thread={thread} />
         ))}
       </ul>
 
       {!loading && threads.length === 0 && (
-        <p style={{ opacity: 0.5, textAlign: "center" }}>No threads yet</p>
+        <p className="opacity-50 text-center">No threads yet</p>
       )}
     </div>
   );
@@ -170,24 +181,25 @@ function ThreadItem({ thread }: { thread: ThreadSummary }) {
 
   return (
     <li
-      style={{
-        padding: "8px",
-        cursor: "pointer",
-        borderBottom: "1px solid var(--vscode-panel-border)",
-      }}
+      className="p-2 cursor-pointer border-b border-[var(--vscode-panel-border)]"
       onClick={() => void openThread({ id: thread.id, title: thread.title })}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+      <div className="flex items-center gap-1">
         {thread.pinnedAt && <span title="Pinned">📌</span>}
-        <span style={{ fontWeight: 500 }}>{thread.title}</span>
+        <span className="font-medium">{thread.title}</span>
         {thread.incompleteTodoCount > 0 && (
-          <span style={badgeStyle}>{thread.incompleteTodoCount}</span>
+          <span className="bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] rounded-full px-1.5 text-xs leading-relaxed">
+            {thread.incompleteTodoCount}
+          </span>
         )}
       </div>
       {thread.tags.length > 0 && (
-        <div style={{ display: "flex", gap: "4px", marginTop: "4px", flexWrap: "wrap" }}>
+        <div className="flex gap-1 mt-1 flex-wrap">
           {thread.tags.map((tag) => (
-            <span key={tag.id} style={tagBadgeStyle}>
+            <span
+              key={tag.id}
+              className="bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] rounded-sm px-1.5 text-xs"
+            >
               {tag.name}
             </span>
           ))}
@@ -228,20 +240,14 @@ function TodoListView() {
   }
 
   return (
-    <div style={{ padding: "8px" }}>
-      {loading && <p style={{ opacity: 0.5 }}>Loading...</p>}
+    <div className="p-2">
+      {loading && <p className="opacity-50">Loading...</p>}
 
-      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+      <ul className="list-none">
         {todos.map((todo) => (
           <li
             key={todo.id}
-            style={{
-              padding: "8px",
-              borderBottom: "1px solid var(--vscode-panel-border)",
-              display: "flex",
-              gap: "8px",
-              alignItems: "flex-start",
-            }}
+            className="p-2 border-b border-[var(--vscode-panel-border)] flex gap-2 items-start"
           >
             <input
               type="checkbox"
@@ -250,7 +256,7 @@ function TodoListView() {
             />
             <div>
               <div>{todo.content}</div>
-              <div style={{ fontSize: "0.85em", opacity: 0.7 }}>
+              <div className="text-sm opacity-70">
                 {todo.thread.title}
               </div>
             </div>
@@ -259,61 +265,8 @@ function TodoListView() {
       </ul>
 
       {!loading && todos.length === 0 && (
-        <p style={{ opacity: 0.5, textAlign: "center" }}>All done!</p>
+        <p className="opacity-50 text-center">All done!</p>
       )}
     </div>
   );
-}
-
-// ── Styles ──
-
-const buttonStyle: React.CSSProperties = {
-  background: "var(--vscode-button-background)",
-  color: "var(--vscode-button-foreground)",
-  border: "none",
-  padding: "6px 12px",
-  cursor: "pointer",
-  borderRadius: "2px",
-};
-
-const inputStyle: React.CSSProperties = {
-  background: "var(--vscode-input-background)",
-  color: "var(--vscode-input-foreground)",
-  border: "1px solid var(--vscode-input-border)",
-  padding: "4px 8px",
-  flex: 1,
-  borderRadius: "2px",
-};
-
-const badgeStyle: React.CSSProperties = {
-  background: "var(--vscode-badge-background)",
-  color: "var(--vscode-badge-foreground)",
-  borderRadius: "10px",
-  padding: "0 6px",
-  fontSize: "0.8em",
-  lineHeight: "1.6",
-};
-
-const tagBadgeStyle: React.CSSProperties = {
-  background: "var(--vscode-badge-background)",
-  color: "var(--vscode-badge-foreground)",
-  borderRadius: "2px",
-  padding: "1px 6px",
-  fontSize: "0.8em",
-};
-
-function tabStyle(active: boolean): React.CSSProperties {
-  return {
-    flex: 1,
-    padding: "8px",
-    background: "transparent",
-    color: active
-      ? "var(--vscode-foreground)"
-      : "var(--vscode-disabledForeground)",
-    border: "none",
-    borderBottom: active
-      ? "2px solid var(--vscode-focusBorder)"
-      : "2px solid transparent",
-    cursor: "pointer",
-  };
 }

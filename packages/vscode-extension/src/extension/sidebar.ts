@@ -150,7 +150,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.extensionUri, "dist", "webview", "sidebar.js"),
     );
-    const csp = `default-src 'none'; script-src ${webview.cspSource}; style-src 'unsafe-inline';`;
+    const csp = `default-src 'none'; script-src ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline';`;
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -160,11 +160,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Threads</title>
   <style>
+    html { font-size: var(--vscode-font-size); }
     body {
       padding: 0;
       margin: 0;
       font-family: var(--vscode-font-family);
-      font-size: var(--vscode-font-size);
       color: var(--vscode-foreground);
       background-color: var(--vscode-sideBar-background);
     }

@@ -28,25 +28,21 @@ export function App() {
   }
 
   if (loading && !thread) {
-    return <div style={{ padding: "16px", opacity: 0.5 }}>Loading...</div>;
+    return <div className="p-4 opacity-50">Loading...</div>;
   }
 
   if (!thread) {
-    return <div style={{ padding: "16px" }}>Thread not found</div>;
+    return <div className="p-4">Thread not found</div>;
   }
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div className="flex h-screen">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <ThreadHeader thread={thread} onUpdate={loadThread} />
         <MessageList messages={thread.messages} threadId={threadId} onUpdate={loadThread} />
         <MessageInput threadId={threadId} onSend={loadThread} />
       </div>
-      <div style={{
-        width: "280px",
-        borderLeft: "1px solid var(--vscode-panel-border)",
-        overflow: "auto",
-      }}>
+      <div className="w-[280px] border-l border-[var(--vscode-panel-border)] overflow-auto">
         <TodoPanel todos={thread.todos} threadId={threadId} onUpdate={loadThread} />
         <BookmarkPanel bookmarks={thread.bookmarks} threadId={threadId} onUpdate={loadThread} />
       </div>
@@ -98,13 +94,7 @@ function ThreadHeader({
   }
 
   return (
-    <div style={{
-      padding: "12px 16px",
-      borderBottom: "1px solid var(--vscode-panel-border)",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-    }}>
+    <div className="px-4 py-3 border-b border-[var(--vscode-panel-border)] flex items-center gap-2">
       {editing ? (
         <input
           value={title}
@@ -112,27 +102,40 @@ function ThreadHeader({
           onBlur={() => void handleSaveTitle()}
           onKeyDown={(e) => { if (e.key === "Enter") void handleSaveTitle(); }}
           autoFocus
-          style={inputStyle}
+          className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm flex-1"
         />
       ) : (
         <span
-          style={{ fontWeight: 600, fontSize: "1.1em", cursor: "pointer", flex: 1 }}
+          className="font-semibold text-lg cursor-pointer flex-1"
           onClick={() => setEditing(true)}
         >
           {thread.title}
         </span>
       )}
 
-      <button onClick={() => void handleTogglePin()} style={iconButtonStyle} title={thread.pinnedAt ? "Unpin" : "Pin"}>
+      <button
+        onClick={() => void handleTogglePin()}
+        className="bg-transparent border-none cursor-pointer px-1 py-0.5"
+        title={thread.pinnedAt ? "Unpin" : "Pin"}
+      >
         {thread.pinnedAt ? "📌" : "📍"}
       </button>
-      <button onClick={() => void handleDelete()} style={iconButtonStyle} title="Delete thread">
+      <button
+        onClick={() => void handleDelete()}
+        className="bg-transparent border-none cursor-pointer px-1 py-0.5"
+        title="Delete thread"
+      >
         🗑️
       </button>
 
-      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+      <div className="flex gap-1 flex-wrap">
         {thread.tags.map((tag) => (
-          <span key={tag.id} style={tagBadgeStyle}>{tag.name}</span>
+          <span
+            key={tag.id}
+            className="bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] rounded-sm px-1.5 text-xs"
+          >
+            {tag.name}
+          </span>
         ))}
       </div>
     </div>
@@ -177,36 +180,46 @@ function MessageList({
   }
 
   return (
-    <div style={{ flex: 1, overflow: "auto", padding: "8px 16px" }}>
+    <div className="flex-1 overflow-auto px-4 py-2">
       {messages.map((msg) => (
-        <div key={msg.id} style={{
-          padding: "8px 0",
-          borderBottom: "1px solid var(--vscode-panel-border)",
-        }}>
+        <div key={msg.id} className="py-2 border-b border-[var(--vscode-panel-border)]">
           {editingId === msg.id ? (
             <div>
               <textarea
                 value={editBody}
                 onChange={(e) => setEditBody(e.target.value)}
-                style={{ ...inputStyle, width: "100%", minHeight: "60px", resize: "vertical" }}
+                className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm w-full min-h-[60px] resize-y"
                 autoFocus
               />
-              <div style={{ display: "flex", gap: "4px", marginTop: "4px" }}>
-                <button onClick={() => void handleSave(msg.id)} style={buttonStyle}>Save</button>
-                <button onClick={() => setEditingId(null)} style={secondaryButtonStyle}>Cancel</button>
+              <div className="flex gap-1 mt-1">
+                <button
+                  onClick={() => void handleSave(msg.id)}
+                  className="bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditingId(null)}
+                  className="bg-[var(--vscode-button-secondaryBackground)] text-[var(--vscode-button-secondaryForeground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           ) : (
             <div>
-              <div style={{ whiteSpace: "pre-wrap" }}>{msg.body}</div>
-              <div style={{ display: "flex", gap: "4px", marginTop: "4px", opacity: 0.5 }}>
+              <div className="whitespace-pre-wrap">{msg.body}</div>
+              <div className="flex gap-1 mt-1 opacity-50">
                 <button
                   onClick={() => { setEditingId(msg.id); setEditBody(msg.body); }}
-                  style={iconButtonStyle}
+                  className="bg-transparent border-none cursor-pointer px-1 py-0.5"
                 >
                   ✏️
                 </button>
-                <button onClick={() => void handleDelete(msg.id)} style={iconButtonStyle}>
+                <button
+                  onClick={() => void handleDelete(msg.id)}
+                  className="bg-transparent border-none cursor-pointer px-1 py-0.5"
+                >
                   🗑️
                 </button>
               </div>
@@ -240,12 +253,7 @@ function MessageInput({
   }
 
   return (
-    <div style={{
-      padding: "8px 16px",
-      borderTop: "1px solid var(--vscode-panel-border)",
-      display: "flex",
-      gap: "8px",
-    }}>
+    <div className="px-4 py-2 border-t border-[var(--vscode-panel-border)] flex gap-2">
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
@@ -256,9 +264,13 @@ function MessageInput({
             void handleSend();
           }
         }}
-        style={{ ...inputStyle, flex: 1, minHeight: "40px", resize: "vertical" }}
+        className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm flex-1 min-h-[40px] resize-y"
       />
-      <button onClick={() => void handleSend()} disabled={loading || !body.trim()} style={buttonStyle}>
+      <button
+        onClick={() => void handleSend()}
+        disabled={loading || !body.trim()}
+        className="bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
+      >
         Send
       </button>
     </div>
@@ -311,39 +323,40 @@ function TodoPanel({
   }
 
   return (
-    <div style={{ padding: "8px" }}>
-      <div style={{ fontWeight: 600, marginBottom: "8px" }}>TODOs</div>
-      <div style={{ display: "flex", gap: "4px", marginBottom: "8px" }}>
+    <div className="p-2">
+      <div className="font-semibold mb-2">TODOs</div>
+      <div className="flex gap-1 mb-2">
         <input
           value={newContent}
           onChange={(e) => setNewContent(e.target.value)}
           placeholder="Add TODO..."
           onKeyDown={(e) => { if (e.key === "Enter") void handleAdd(); }}
-          style={inputStyle}
+          className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm flex-1"
         />
-        <button onClick={() => void handleAdd()} style={buttonStyle}>+</button>
+        <button
+          onClick={() => void handleAdd()}
+          className="bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
+        >
+          +
+        </button>
       </div>
-      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+      <ul className="list-none">
         {todos.map((todo) => (
-          <li key={todo.id} style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-            padding: "4px 0",
-          }}>
+          <li key={todo.id} className="flex items-center gap-1 py-1">
             <input
               type="checkbox"
               checked={todo.completedAt != null}
               onChange={() => void handleToggle(todo.id, todo.completedAt == null)}
             />
-            <span style={{
-              flex: 1,
-              textDecoration: todo.completedAt ? "line-through" : "none",
-              opacity: todo.completedAt ? 0.5 : 1,
-            }}>
+            <span className={`flex-1 ${todo.completedAt ? "line-through opacity-50" : ""}`}>
               {todo.content}
             </span>
-            <button onClick={() => void handleDelete(todo.id)} style={iconButtonStyle}>×</button>
+            <button
+              onClick={() => void handleDelete(todo.id)}
+              className="bg-transparent border-none cursor-pointer px-1 py-0.5"
+            >
+              ×
+            </button>
           </li>
         ))}
       </ul>
@@ -387,85 +400,50 @@ function BookmarkPanel({
   }
 
   return (
-    <div style={{ padding: "8px", borderTop: "1px solid var(--vscode-panel-border)" }}>
-      <div style={{ fontWeight: 600, marginBottom: "8px" }}>Bookmarks</div>
-      <div style={{ display: "flex", gap: "4px", marginBottom: "8px" }}>
+    <div className="p-2 border-t border-[var(--vscode-panel-border)]">
+      <div className="font-semibold mb-2">Bookmarks</div>
+      <div className="flex gap-1 mb-2">
         <input
           value={newUrl}
           onChange={(e) => setNewUrl(e.target.value)}
           placeholder="Add URL..."
           onKeyDown={(e) => { if (e.key === "Enter") void handleAdd(); }}
-          style={inputStyle}
+          className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm flex-1"
         />
-        <button onClick={() => void handleAdd()} disabled={loading} style={buttonStyle}>+</button>
+        <button
+          onClick={() => void handleAdd()}
+          disabled={loading}
+          className="bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
+        >
+          +
+        </button>
       </div>
-      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+      <ul className="list-none">
         {bookmarks.map((bm) => (
-          <li key={bm.id} style={{
-            padding: "6px 0",
-            borderBottom: "1px solid var(--vscode-panel-border)",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <li key={bm.id} className="py-1.5 border-b border-[var(--vscode-panel-border)]">
+            <div className="flex items-center gap-1">
               <a
                 href={bm.url}
-                style={{ color: "var(--vscode-textLink-foreground)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                className="text-[var(--vscode-textLink-foreground)] flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
               >
                 {bm.title || bm.url}
               </a>
-              <button onClick={() => void handleDelete(bm.id)} style={iconButtonStyle}>×</button>
+              <button
+                onClick={() => void handleDelete(bm.id)}
+                className="bg-transparent border-none cursor-pointer px-1 py-0.5"
+              >
+                ×
+              </button>
             </div>
             {bm.description && (
-              <div style={{ fontSize: "0.85em", opacity: 0.7, marginTop: "2px" }}>
+              <div className="text-sm opacity-70 mt-0.5">
                 {bm.description}
               </div>
             )}
-            <div style={{ fontSize: "0.8em", opacity: 0.5 }}>{bm.domain}</div>
+            <div className="text-xs opacity-50">{bm.domain}</div>
           </li>
         ))}
       </ul>
     </div>
   );
 }
-
-// ── Styles ──
-
-const buttonStyle: React.CSSProperties = {
-  background: "var(--vscode-button-background)",
-  color: "var(--vscode-button-foreground)",
-  border: "none",
-  padding: "6px 12px",
-  cursor: "pointer",
-  borderRadius: "2px",
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  background: "var(--vscode-button-secondaryBackground)",
-  color: "var(--vscode-button-secondaryForeground)",
-  border: "none",
-  padding: "6px 12px",
-  cursor: "pointer",
-  borderRadius: "2px",
-};
-
-const iconButtonStyle: React.CSSProperties = {
-  background: "transparent",
-  border: "none",
-  cursor: "pointer",
-  padding: "2px 4px",
-};
-
-const inputStyle: React.CSSProperties = {
-  background: "var(--vscode-input-background)",
-  color: "var(--vscode-input-foreground)",
-  border: "1px solid var(--vscode-input-border)",
-  padding: "4px 8px",
-  borderRadius: "2px",
-};
-
-const tagBadgeStyle: React.CSSProperties = {
-  background: "var(--vscode-badge-background)",
-  color: "var(--vscode-badge-foreground)",
-  borderRadius: "2px",
-  padding: "1px 6px",
-  fontSize: "0.8em",
-};
