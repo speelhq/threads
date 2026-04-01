@@ -27,12 +27,12 @@ type ApiClientConfig = {
   onUnauthorized: () => Promise<string | null>;
 };
 
-type LoginResponse = AuthUser & {
+export type LoginResponse = AuthUser & {
   cohorts: UserCohort[];
   createdAt: string;
 };
 
-type SignupResponse = {
+export type SignupResponse = {
   id: string;
   email: string;
   displayName: string;

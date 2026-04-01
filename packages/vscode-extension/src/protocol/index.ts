@@ -54,8 +54,10 @@ export type AuthStatePayload = {
 // ── Commands (Webview → Extension Host) ──
 
 export type Commands = {
+  "auth.getState": { payload: undefined; response: AuthStatePayload };
   "auth.login": { payload: undefined; response: undefined };
   "auth.logout": { payload: undefined; response: undefined };
+  "threads.open": { payload: { id: string; title: string }; response: undefined };
 
   "threads.list": {
     payload: {
