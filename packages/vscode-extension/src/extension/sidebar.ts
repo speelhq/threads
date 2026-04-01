@@ -10,6 +10,7 @@ import type { HandlerMap } from "./handlers.js";
 export class SidebarProvider implements vscode.WebviewViewProvider {
   private view: vscode.WebviewView | undefined;
   private handlers: HandlerMap;
+  private unsubscribeEventBus: (() => void) | undefined;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -41,11 +42,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       void handleRequest(this.handlers, webviewView.webview, msg);
     });
 
-    // Subscribe to event bus
-    this.eventBus.subscribe("sidebar", webviewView.webview);
+    // Subscribe to event bus (unsubscribe previous if re-resolved)
+    this.unsubscribeEventBus?.();
+    this.unsubscribeEventBus = this.eventBus.subscribe("sidebar", webviewView.webview);
 
-    // Send current auth state when webview is ready or becomes visible
-    this.pushAuthState();
+    // Re-send auth state when sidebar becomes visible again
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
         this.pushAuthState();

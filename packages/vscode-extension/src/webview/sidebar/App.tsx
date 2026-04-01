@@ -9,12 +9,11 @@ export function App() {
   useEffect(() => {
     // Fetch current auth state on mount (may have been set before webview loaded)
     void getAuthState().then((p) => {
-      setAuthenticated(p?.user != null);
+      setAuthenticated(p.user != null);
     });
 
     return onEvent("auth.stateChanged", (payload) => {
-      const p = payload as { user: unknown } | undefined;
-      setAuthenticated(p?.user != null);
+      setAuthenticated(payload.user != null);
     });
   }, []);
 
@@ -102,7 +101,7 @@ function MainView() {
     const firstExpandedTag = tags.find((t) => expandedTags.has(t.id));
     const tagId = firstExpandedTag?.id ?? tags[0]?.id;
     try {
-      const thread = await createThread({ title: "New Thread", tag_ids: tagId ? [tagId] : [] });
+      const thread = await createThread({ title: "New Thread", tagIds: tagId ? [tagId] : undefined });
       await loadThreads();
       void openThread({ id: thread.id, title: thread.title });
     } catch {}
