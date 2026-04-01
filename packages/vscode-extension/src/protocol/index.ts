@@ -24,11 +24,7 @@ export type Message = RequestMessage | ResponseMessage | EventMessage;
 
 // ── Auth ──
 
-export type AuthState =
-  | "unauthenticated"
-  | "authenticating"
-  | "authenticated"
-  | "token_expired";
+export type AuthState = "unauthenticated" | "authenticating" | "authenticated" | "token_expired";
 
 export type AuthUser = {
   id: string;

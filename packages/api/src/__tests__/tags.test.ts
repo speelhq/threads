@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
 import app from "../app.js";
-import {
-  mockFirebaseToken,
-  resetFirebaseMocks,
-} from "./helpers.js";
+import { mockFirebaseToken, resetFirebaseMocks } from "./helpers.js";
 
 vi.mock("../services/auth.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/auth.js")>();
@@ -15,9 +12,14 @@ vi.mock("../services/cohorts.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/cohorts.js")>();
   return {
     ...actual,
-    listCohorts: vi.fn(), createCohort: vi.fn(), getCohortById: vi.fn(),
-    updateCohort: vi.fn(), listMembers: vi.fn(), addMember: vi.fn(),
-    removeMember: vi.fn(), isInstructorOfCohort: vi.fn(),
+    listCohorts: vi.fn(),
+    createCohort: vi.fn(),
+    getCohortById: vi.fn(),
+    updateCohort: vi.fn(),
+    listMembers: vi.fn(),
+    addMember: vi.fn(),
+    removeMember: vi.fn(),
+    isInstructorOfCohort: vi.fn(),
   };
 });
 
@@ -25,8 +27,12 @@ vi.mock("../services/threads.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/threads.js")>();
   return {
     ...actual,
-    listThreads: vi.fn(), createThread: vi.fn(), getThreadById: vi.fn(),
-    getThreadOwnerId: vi.fn(), updateThread: vi.fn(), deleteThread: vi.fn(),
+    listThreads: vi.fn(),
+    createThread: vi.fn(),
+    getThreadById: vi.fn(),
+    getThreadOwnerId: vi.fn(),
+    updateThread: vi.fn(),
+    deleteThread: vi.fn(),
     resolveWorkspaceId: vi.fn(),
   };
 });
@@ -35,8 +41,12 @@ vi.mock("../services/messages.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/messages.js")>();
   return {
     ...actual,
-    listMessages: vi.fn(), createMessage: vi.fn(), getMessageById: vi.fn(),
-    updateMessage: vi.fn(), deleteMessage: vi.fn(), reorderMessages: vi.fn(),
+    listMessages: vi.fn(),
+    createMessage: vi.fn(),
+    getMessageById: vi.fn(),
+    updateMessage: vi.fn(),
+    deleteMessage: vi.fn(),
+    reorderMessages: vi.fn(),
   };
 });
 
@@ -44,8 +54,12 @@ vi.mock("../services/todos.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/todos.js")>();
   return {
     ...actual,
-    listTodos: vi.fn(), createTodo: vi.fn(), getTodoById: vi.fn(),
-    updateTodo: vi.fn(), deleteTodo: vi.fn(), listCrossThreadTodos: vi.fn(),
+    listTodos: vi.fn(),
+    createTodo: vi.fn(),
+    getTodoById: vi.fn(),
+    updateTodo: vi.fn(),
+    deleteTodo: vi.fn(),
+    listCrossThreadTodos: vi.fn(),
   };
 });
 
@@ -53,8 +67,11 @@ vi.mock("../services/bookmarks.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/bookmarks.js")>();
   return {
     ...actual,
-    listBookmarks: vi.fn(), createBookmark: vi.fn(), getBookmarkById: vi.fn(),
-    updateBookmark: vi.fn(), deleteBookmark: vi.fn(),
+    listBookmarks: vi.fn(),
+    createBookmark: vi.fn(),
+    getBookmarkById: vi.fn(),
+    updateBookmark: vi.fn(),
+    deleteBookmark: vi.fn(),
   };
 });
 
@@ -62,19 +79,33 @@ vi.mock("../services/tags.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/tags.js")>();
   return {
     ...actual,
-    listTags: vi.fn(), createCustomTag: vi.fn(), createPresetTag: vi.fn(),
-    getTagById: vi.fn(), updateTag: vi.fn(), deleteTag: vi.fn(),
-    addTagToThread: vi.fn(), removeTagFromThread: vi.fn(),
+    listTags: vi.fn(),
+    createCustomTag: vi.fn(),
+    createPresetTag: vi.fn(),
+    getTagById: vi.fn(),
+    updateTag: vi.fn(),
+    deleteTag: vi.fn(),
+    addTagToThread: vi.fn(),
+    removeTagFromThread: vi.fn(),
   };
 });
 
 import { findUserByExternalId } from "../services/auth.js";
 import { getThreadOwnerId } from "../services/threads.js";
 import {
-  listTags, createCustomTag, createPresetTag, getTagById, updateTag, deleteTag,
-  addTagToThread, removeTagFromThread,
-  TagAlreadyExistsError, InvalidTagError, AlreadyTaggedError,
-  CohortNotFoundError, ForbiddenError,
+  listTags,
+  createCustomTag,
+  createPresetTag,
+  getTagById,
+  updateTag,
+  deleteTag,
+  addTagToThread,
+  removeTagFromThread,
+  TagAlreadyExistsError,
+  InvalidTagError,
+  AlreadyTaggedError,
+  CohortNotFoundError,
+  ForbiddenError,
 } from "../services/tags.js";
 
 const mockFindUser = findUserByExternalId as ReturnType<typeof vi.fn>;
@@ -151,9 +182,7 @@ describe("Tag endpoints", () => {
     it("returns 400 without cohort_id", async () => {
       authenticateAs(memberUser);
 
-      const res = await request(app)
-        .get("/tags")
-        .set("Authorization", "Bearer valid-token");
+      const res = await request(app).get("/tags").set("Authorization", "Bearer valid-token");
 
       expect(res.status).toBe(400);
     });
@@ -352,7 +381,9 @@ describe("Tag endpoints", () => {
       authenticateAs(memberUser);
       mockGetThreadOwnerId.mockResolvedValue("user-1");
       mockAddTagToThread.mockResolvedValue({
-        thread_id: "thread-1", tag_id: tagId, created_at: "2026-01-01T00:00:00.000Z",
+        thread_id: "thread-1",
+        tag_id: tagId,
+        created_at: "2026-01-01T00:00:00.000Z",
       });
 
       const res = await request(app)

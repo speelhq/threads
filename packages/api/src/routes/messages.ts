@@ -1,10 +1,6 @@
 import { Router, type Router as RouterType } from "express";
 import { z } from "zod/v4";
-import {
-  verifyToken,
-  resolveUser,
-  type AuthenticatedRequest,
-} from "../middleware/authenticate.js";
+import { verifyToken, resolveUser, type AuthenticatedRequest } from "../middleware/authenticate.js";
 import { sendValidationError } from "../middleware/validate.js";
 import { getThreadOwnerId } from "../services/threads.js";
 import {
@@ -138,13 +134,19 @@ threadMessageRoutes.patch("/:id/messages/reorder", verifyToken, resolveUser, asy
   } catch (err) {
     if (err instanceof InvalidMessageIdsError) {
       res.status(400).json({
-        error: { code: "INVALID_MESSAGE_IDS", message: "Some message IDs do not belong to this thread" },
+        error: {
+          code: "INVALID_MESSAGE_IDS",
+          message: "Some message IDs do not belong to this thread",
+        },
       });
       return;
     }
     if (err instanceof IncompleteMessageIdsError) {
       res.status(400).json({
-        error: { code: "INCOMPLETE_MESSAGE_IDS", message: "All messages in the thread must be included" },
+        error: {
+          code: "INCOMPLETE_MESSAGE_IDS",
+          message: "All messages in the thread must be included",
+        },
       });
       return;
     }

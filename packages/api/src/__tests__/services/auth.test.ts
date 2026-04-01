@@ -10,10 +10,7 @@ import {
 } from "../../services/auth.js";
 
 async function createWorkspaceAndCohort(name: string, startDate: string, endDate: string) {
-  const [ws] = await getDb()
-    .insert(workspaces)
-    .values({ type: "cohort", name })
-    .returning();
+  const [ws] = await getDb().insert(workspaces).values({ type: "cohort", name }).returning();
   const [cohort] = await getDb()
     .insert(cohorts)
     .values({ workspace_id: ws.id, name, start_date: startDate, end_date: endDate })
@@ -166,10 +163,12 @@ describe("auth service", () => {
       const c1 = await createWorkspaceAndCohort("Q1", "2026-01-01", "2026-03-31");
       const c2 = await createWorkspaceAndCohort("Q2", "2026-04-01", "2026-06-30");
 
-      await getDb().insert(userCohorts).values([
-        { user_id: user.id, cohort_id: c1.id, role_in_cohort: "student" as const },
-        { user_id: user.id, cohort_id: c2.id, role_in_cohort: "instructor" as const },
-      ]);
+      await getDb()
+        .insert(userCohorts)
+        .values([
+          { user_id: user.id, cohort_id: c1.id, role_in_cohort: "student" as const },
+          { user_id: user.id, cohort_id: c2.id, role_in_cohort: "instructor" as const },
+        ]);
 
       const result = await getUserWithCohorts(user.id);
 

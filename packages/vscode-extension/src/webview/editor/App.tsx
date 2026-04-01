@@ -1,12 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useCommand } from "../hooks/useCommand.js";
 import { Markdown } from "../components/Markdown.js";
-import type {
-  ThreadDetail,
-  MessageItem,
-  TodoItem,
-  BookmarkItem,
-} from "../../protocol/index.js";
+import type { ThreadDetail, MessageItem, TodoItem, BookmarkItem } from "../../protocol/index.js";
 
 const threadId = document.getElementById("root")!.dataset.threadId!;
 
@@ -67,7 +62,12 @@ export function App() {
   return (
     <div className="flex h-screen">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <ThreadHeader thread={thread} onUpdate={loadThread} showSidePanel={showSidePanel} onToggleSidePanel={() => setShowSidePanel((v) => !v)} />
+        <ThreadHeader
+          thread={thread}
+          onUpdate={loadThread}
+          showSidePanel={showSidePanel}
+          onToggleSidePanel={() => setShowSidePanel((v) => !v)}
+        />
         <MessageList
           messages={thread.messages}
           selectedId={selectedMsgId}
@@ -108,7 +108,9 @@ function ThreadHeader({
 }) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(thread.title);
-  useEffect(() => { setTitle(thread.title); }, [thread.title]);
+  useEffect(() => {
+    setTitle(thread.title);
+  }, [thread.title]);
   const { execute: updateThread } = useCommand("threads.update");
   const { execute: deleteThread } = useCommand("threads.delete");
 
@@ -144,7 +146,9 @@ function ThreadHeader({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={() => void handleSaveTitle()}
-          onKeyDown={(e) => { if (e.key === "Enter") void handleSaveTitle(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void handleSaveTitle();
+          }}
           autoFocus
           className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm flex-1"
         />
@@ -272,7 +276,10 @@ function MessageList({
         e.preventDefault();
         if (selectedId) {
           const msg = messages.find((m) => m.id === selectedId);
-          if (msg) { setEditingId(msg.id); setEditBody(msg.body); }
+          if (msg) {
+            setEditingId(msg.id);
+            setEditBody(msg.body);
+          }
         }
         break;
       case "Delete":
@@ -323,21 +330,31 @@ function MessageList({
                   e.target.style.height = e.target.scrollHeight + "px";
                 }}
                 ref={(el) => {
-                  if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
+                  if (el) {
+                    el.style.height = "auto";
+                    el.style.height = el.scrollHeight + "px";
+                  }
                 }}
                 className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm w-full min-h-[60px] resize-y overflow-hidden"
                 autoFocus
                 onKeyDown={(e) => {
-                  if (e.key === "Escape") { e.stopPropagation(); setEditingId(null); listRef.current?.focus(); }
-                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); void handleSave(msg.id); }
+                  if (e.key === "Escape") {
+                    e.stopPropagation();
+                    setEditingId(null);
+                    listRef.current?.focus();
+                  }
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    void handleSave(msg.id);
+                  }
                 }}
               />
-              <div className="mt-1 text-xs opacity-50">
-                Ctrl+Enter to save · Escape to cancel
-              </div>
+              <div className="mt-1 text-xs opacity-50">Ctrl+Enter to save · Escape to cancel</div>
             </div>
           ) : (
-            <div className="prose"><Markdown content={msg.body} /></div>
+            <div className="prose">
+              <Markdown content={msg.body} />
+            </div>
           )}
         </div>
       ))}
@@ -428,11 +445,17 @@ function TodoPanel({
   }
 
   async function handleToggle(id: string, completed: boolean) {
-    try { await updateTodo({ id, completed }); await onUpdate(); } catch {}
+    try {
+      await updateTodo({ id, completed });
+      await onUpdate();
+    } catch {}
   }
 
   async function handleDelete(id: string) {
-    try { await deleteTodo({ id }); await onUpdate(); } catch {}
+    try {
+      await deleteTodo({ id });
+      await onUpdate();
+    } catch {}
   }
 
   return (
@@ -443,7 +466,9 @@ function TodoPanel({
           value={newContent}
           onChange={(e) => setNewContent(e.target.value)}
           placeholder="Add TODO..."
-          onKeyDown={(e) => { if (e.key === "Enter") void handleAdd(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void handleAdd();
+          }}
           className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm flex-1"
         />
         <button
@@ -502,7 +527,10 @@ function BookmarkPanel({
   }
 
   async function handleDelete(id: string) {
-    try { await deleteBookmark({ id }); await onUpdate(); } catch {}
+    try {
+      await deleteBookmark({ id });
+      await onUpdate();
+    } catch {}
   }
 
   return (
@@ -513,7 +541,9 @@ function BookmarkPanel({
           value={newUrl}
           onChange={(e) => setNewUrl(e.target.value)}
           placeholder="Add URL..."
-          onKeyDown={(e) => { if (e.key === "Enter") void handleAdd(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void handleAdd();
+          }}
           className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm flex-1"
         />
         <button
@@ -541,9 +571,7 @@ function BookmarkPanel({
                 ×
               </button>
             </div>
-            {bm.description && (
-              <div className="text-sm opacity-70 mt-0.5">{bm.description}</div>
-            )}
+            {bm.description && <div className="text-sm opacity-70 mt-0.5">{bm.description}</div>}
             <div className="text-xs opacity-50">{bm.domain}</div>
           </li>
         ))}

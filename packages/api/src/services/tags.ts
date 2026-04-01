@@ -38,11 +38,7 @@ export async function createCustomTag(params: { name: string; user_id: string })
     .select({ id: tags.id })
     .from(tags)
     .where(
-      and(
-        eq(tags.type, "custom"),
-        eq(tags.created_by, params.user_id),
-        eq(tags.name, params.name),
-      ),
+      and(eq(tags.type, "custom"), eq(tags.created_by, params.user_id), eq(tags.name, params.name)),
     )
     .limit(1);
 
@@ -96,10 +92,7 @@ export async function createPresetTag(params: {
   }
 
   // Check for duplicate name in same scope
-  const duplicateConditions = [
-    eq(tags.type, "preset"),
-    eq(tags.name, params.name),
-  ];
+  const duplicateConditions = [eq(tags.type, "preset"), eq(tags.name, params.name)];
   if (params.cohort_id) {
     duplicateConditions.push(eq(tags.cohort_id, params.cohort_id));
   } else {
@@ -203,10 +196,7 @@ export async function updateTag(tagId: string, params: { name: string }) {
  * Delete a tag. thread_tags cascade.
  */
 export async function deleteTag(tagId: string): Promise<boolean> {
-  const deleted = await getDb()
-    .delete(tags)
-    .where(eq(tags.id, tagId))
-    .returning({ id: tags.id });
+  const deleted = await getDb().delete(tags).where(eq(tags.id, tagId)).returning({ id: tags.id });
   return deleted.length > 0;
 }
 
@@ -229,12 +219,7 @@ export async function addTagToThread(params: {
   const [existing] = await getDb()
     .select({ thread_id: threadTags.thread_id })
     .from(threadTags)
-    .where(
-      and(
-        eq(threadTags.thread_id, params.thread_id),
-        eq(threadTags.tag_id, params.tag_id),
-      ),
-    )
+    .where(and(eq(threadTags.thread_id, params.thread_id), eq(threadTags.tag_id, params.tag_id)))
     .limit(1);
 
   if (existing) throw new AlreadyTaggedError();
@@ -268,20 +253,12 @@ export async function removeTagFromThread(threadId: string, tagId: string): Prom
   return getDb().transaction(async (tx) => {
     const deleted = await tx
       .delete(threadTags)
-      .where(
-        and(
-          eq(threadTags.thread_id, threadId),
-          eq(threadTags.tag_id, tagId),
-        ),
-      )
+      .where(and(eq(threadTags.thread_id, threadId), eq(threadTags.tag_id, tagId)))
       .returning({ thread_id: threadTags.thread_id });
 
     if (deleted.length === 0) return false;
 
-    await tx
-      .update(threads)
-      .set({ updated_at: new Date() })
-      .where(eq(threads.id, threadId));
+    await tx.update(threads).set({ updated_at: new Date() }).where(eq(threads.id, threadId));
 
     return true;
   });

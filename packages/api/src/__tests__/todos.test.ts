@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
 import app from "../app.js";
-import {
-  mockFirebaseToken,
-  resetFirebaseMocks,
-} from "./helpers.js";
+import { mockFirebaseToken, resetFirebaseMocks } from "./helpers.js";
 
 vi.mock("../services/auth.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/auth.js")>();
@@ -15,9 +12,14 @@ vi.mock("../services/cohorts.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/cohorts.js")>();
   return {
     ...actual,
-    listCohorts: vi.fn(), createCohort: vi.fn(), getCohortById: vi.fn(),
-    updateCohort: vi.fn(), listMembers: vi.fn(), addMember: vi.fn(),
-    removeMember: vi.fn(), isInstructorOfCohort: vi.fn(),
+    listCohorts: vi.fn(),
+    createCohort: vi.fn(),
+    getCohortById: vi.fn(),
+    updateCohort: vi.fn(),
+    listMembers: vi.fn(),
+    addMember: vi.fn(),
+    removeMember: vi.fn(),
+    isInstructorOfCohort: vi.fn(),
   };
 });
 
@@ -25,8 +27,12 @@ vi.mock("../services/threads.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/threads.js")>();
   return {
     ...actual,
-    listThreads: vi.fn(), createThread: vi.fn(), getThreadById: vi.fn(),
-    getThreadOwnerId: vi.fn(), updateThread: vi.fn(), deleteThread: vi.fn(),
+    listThreads: vi.fn(),
+    createThread: vi.fn(),
+    getThreadById: vi.fn(),
+    getThreadOwnerId: vi.fn(),
+    updateThread: vi.fn(),
+    deleteThread: vi.fn(),
     resolveWorkspaceId: vi.fn(),
   };
 });
@@ -35,8 +41,12 @@ vi.mock("../services/messages.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/messages.js")>();
   return {
     ...actual,
-    listMessages: vi.fn(), createMessage: vi.fn(), getMessageById: vi.fn(),
-    updateMessage: vi.fn(), deleteMessage: vi.fn(), reorderMessages: vi.fn(),
+    listMessages: vi.fn(),
+    createMessage: vi.fn(),
+    getMessageById: vi.fn(),
+    updateMessage: vi.fn(),
+    deleteMessage: vi.fn(),
+    reorderMessages: vi.fn(),
   };
 });
 
@@ -44,15 +54,24 @@ vi.mock("../services/todos.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/todos.js")>();
   return {
     ...actual,
-    listTodos: vi.fn(), createTodo: vi.fn(), getTodoById: vi.fn(),
-    updateTodo: vi.fn(), deleteTodo: vi.fn(), listCrossThreadTodos: vi.fn(),
+    listTodos: vi.fn(),
+    createTodo: vi.fn(),
+    getTodoById: vi.fn(),
+    updateTodo: vi.fn(),
+    deleteTodo: vi.fn(),
+    listCrossThreadTodos: vi.fn(),
   };
 });
 
 import { findUserByExternalId } from "../services/auth.js";
 import { getThreadOwnerId } from "../services/threads.js";
 import {
-  listTodos, createTodo, getTodoById, updateTodo, deleteTodo, listCrossThreadTodos,
+  listTodos,
+  createTodo,
+  getTodoById,
+  updateTodo,
+  deleteTodo,
+  listCrossThreadTodos,
 } from "../services/todos.js";
 
 const mockFindUser = findUserByExternalId as ReturnType<typeof vi.fn>;
@@ -183,9 +202,17 @@ describe("Todo endpoints", () => {
   describe("PATCH /todos/:id", () => {
     it("updates content", async () => {
       authenticate();
-      mockGetTodoById.mockResolvedValue({ ...sampleTodo, thread_id: "thread-1", updated_at: "2026-01-01T00:00:00.000Z" });
+      mockGetTodoById.mockResolvedValue({
+        ...sampleTodo,
+        thread_id: "thread-1",
+        updated_at: "2026-01-01T00:00:00.000Z",
+      });
       mockGetThreadOwnerId.mockResolvedValue("user-1");
-      mockUpdateTodo.mockResolvedValue({ ...sampleTodo, content: "Updated", updated_at: "2026-01-01T00:00:00.000Z" });
+      mockUpdateTodo.mockResolvedValue({
+        ...sampleTodo,
+        content: "Updated",
+        updated_at: "2026-01-01T00:00:00.000Z",
+      });
 
       const res = await request(app)
         .patch("/todos/todo-1")
@@ -198,9 +225,17 @@ describe("Todo endpoints", () => {
 
     it("toggles completed", async () => {
       authenticate();
-      mockGetTodoById.mockResolvedValue({ ...sampleTodo, thread_id: "thread-1", updated_at: "2026-01-01T00:00:00.000Z" });
+      mockGetTodoById.mockResolvedValue({
+        ...sampleTodo,
+        thread_id: "thread-1",
+        updated_at: "2026-01-01T00:00:00.000Z",
+      });
       mockGetThreadOwnerId.mockResolvedValue("user-1");
-      mockUpdateTodo.mockResolvedValue({ ...sampleTodo, completed_at: "2026-03-25T00:00:00.000Z", updated_at: "2026-03-25T00:00:00.000Z" });
+      mockUpdateTodo.mockResolvedValue({
+        ...sampleTodo,
+        completed_at: "2026-03-25T00:00:00.000Z",
+        updated_at: "2026-03-25T00:00:00.000Z",
+      });
 
       const res = await request(app)
         .patch("/todos/todo-1")
@@ -225,7 +260,11 @@ describe("Todo endpoints", () => {
 
     it("returns 403 for non-owner", async () => {
       authenticate();
-      mockGetTodoById.mockResolvedValue({ ...sampleTodo, thread_id: "thread-1", updated_at: "2026-01-01T00:00:00.000Z" });
+      mockGetTodoById.mockResolvedValue({
+        ...sampleTodo,
+        thread_id: "thread-1",
+        updated_at: "2026-01-01T00:00:00.000Z",
+      });
       mockGetThreadOwnerId.mockResolvedValue("user-2");
 
       const res = await request(app)
@@ -242,7 +281,11 @@ describe("Todo endpoints", () => {
   describe("DELETE /todos/:id", () => {
     it("deletes a todo", async () => {
       authenticate();
-      mockGetTodoById.mockResolvedValue({ ...sampleTodo, thread_id: "thread-1", updated_at: "2026-01-01T00:00:00.000Z" });
+      mockGetTodoById.mockResolvedValue({
+        ...sampleTodo,
+        thread_id: "thread-1",
+        updated_at: "2026-01-01T00:00:00.000Z",
+      });
       mockGetThreadOwnerId.mockResolvedValue("user-1");
       mockDeleteTodo.mockResolvedValue({ thread_id: "thread-1" });
 
@@ -287,9 +330,7 @@ describe("Todo endpoints", () => {
     it("returns 400 without completed param", async () => {
       authenticate();
 
-      const res = await request(app)
-        .get("/todos")
-        .set("Authorization", "Bearer valid-token");
+      const res = await request(app).get("/todos").set("Authorization", "Bearer valid-token");
 
       expect(res.status).toBe(400);
     });

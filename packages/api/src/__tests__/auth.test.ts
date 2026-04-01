@@ -1,11 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
 import app from "../app.js";
-import {
-  mockFirebaseToken,
-  mockFirebaseTokenInvalid,
-  resetFirebaseMocks,
-} from "./helpers.js";
+import { mockFirebaseToken, mockFirebaseTokenInvalid, resetFirebaseMocks } from "./helpers.js";
 
 // Mock the auth service (resolveUser now uses findUserByExternalId internally)
 vi.mock("../services/auth.js", async (importOriginal) => {
@@ -202,9 +198,7 @@ describe("Auth endpoints", () => {
       mockFirebaseToken("firebase-uid-1", "test@example.com");
       mockFindUser.mockResolvedValue(null);
 
-      const res = await request(app)
-        .post("/auth/login")
-        .set("Authorization", "Bearer valid-token");
+      const res = await request(app).post("/auth/login").set("Authorization", "Bearer valid-token");
 
       expect(res.status).toBe(401);
       expect(res.body.error.code).toBe("USER_NOT_FOUND");
@@ -235,9 +229,7 @@ describe("Auth endpoints", () => {
         ],
       });
 
-      const res = await request(app)
-        .post("/auth/login")
-        .set("Authorization", "Bearer valid-token");
+      const res = await request(app).post("/auth/login").set("Authorization", "Bearer valid-token");
 
       expect(res.status).toBe(200);
       expect(mockFindUser).toHaveBeenCalledWith("firebase-uid-1");
@@ -268,9 +260,7 @@ describe("Auth endpoints", () => {
         cohorts: [],
       });
 
-      const res = await request(app)
-        .get("/auth/me")
-        .set("Authorization", "Bearer valid-token");
+      const res = await request(app).get("/auth/me").set("Authorization", "Bearer valid-token");
 
       expect(res.status).toBe(200);
       expect(mockFindUser).toHaveBeenCalledWith("firebase-uid-1");

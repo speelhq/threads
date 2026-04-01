@@ -25,10 +25,7 @@ export async function listBookmarks(threadId: string) {
 /**
  * Create a bookmark. Fetches OGP and extracts domain.
  */
-export async function createBookmark(params: {
-  thread_id: string;
-  url: string;
-}) {
+export async function createBookmark(params: { thread_id: string; url: string }) {
   // Validate URL safety (SSRF prevention)
   if (!isUrlSafe(params.url)) {
     throw new InvalidUrlError();

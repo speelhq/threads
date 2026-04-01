@@ -50,8 +50,16 @@ describe("cohorts service", () => {
     });
 
     it("creates distinct workspaces for each cohort", async () => {
-      const c1 = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
-      const c2 = await createCohort({ name: "Q2", start_date: "2026-04-01", end_date: "2026-06-30" });
+      const c1 = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
+      const c2 = await createCohort({
+        name: "Q2",
+        start_date: "2026-04-01",
+        end_date: "2026-06-30",
+      });
 
       expect(c1.workspace_id).not.toBe(c2.workspace_id);
     });
@@ -59,7 +67,11 @@ describe("cohorts service", () => {
 
   describe("getCohortById", () => {
     it("returns cohort with workspace_id and member_count", async () => {
-      const created = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
+      const created = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
       const cohort = await getCohortById(created.id);
 
       expect(cohort).not.toBeNull();
@@ -90,7 +102,11 @@ describe("cohorts service", () => {
 
   describe("updateCohort", () => {
     it("syncs workspace name when cohort name is updated", async () => {
-      const created = await createCohort({ name: "Old Name", start_date: "2026-01-01", end_date: "2026-03-31" });
+      const created = await createCohort({
+        name: "Old Name",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
 
       await updateCohort(created.id, { name: "New Name" });
 
@@ -104,7 +120,11 @@ describe("cohorts service", () => {
     });
 
     it("does not touch workspace when only dates are updated", async () => {
-      const created = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
+      const created = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
 
       await updateCohort(created.id, { end_date: "2026-04-30" });
 
@@ -122,7 +142,11 @@ describe("cohorts service", () => {
     });
 
     it("returns updated cohort with workspace_id", async () => {
-      const created = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
+      const created = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
       const updated = await updateCohort(created.id, { name: "Updated" });
 
       expect(updated).not.toBeNull();
@@ -141,10 +165,18 @@ describe("cohorts service", () => {
     }
 
     it("adds and lists members", async () => {
-      const cohort = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
+      const cohort = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
       const user = await createTestUser("alice@test.com", "Alice");
 
-      const result = await addMember({ cohort_id: cohort.id, user_id: user.id, role_in_cohort: "student" });
+      const result = await addMember({
+        cohort_id: cohort.id,
+        user_id: user.id,
+        role_in_cohort: "student",
+      });
       expect("data" in result).toBe(true);
       if ("data" in result) {
         expect(result.data!.role_in_cohort).toBe("student");
@@ -156,13 +188,25 @@ describe("cohorts service", () => {
     });
 
     it("returns error for nonexistent user", async () => {
-      const cohort = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
-      const result = await addMember({ cohort_id: cohort.id, user_id: "00000000-0000-0000-0000-000000000000", role_in_cohort: "student" });
+      const cohort = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
+      const result = await addMember({
+        cohort_id: cohort.id,
+        user_id: "00000000-0000-0000-0000-000000000000",
+        role_in_cohort: "student",
+      });
       expect("error" in result).toBe(true);
     });
 
     it("throws MemberAlreadyExistsError on duplicate", async () => {
-      const cohort = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
+      const cohort = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
       const user = await createTestUser("bob@test.com", "Bob");
 
       await addMember({ cohort_id: cohort.id, user_id: user.id, role_in_cohort: "student" });
@@ -172,7 +216,11 @@ describe("cohorts service", () => {
     });
 
     it("removes member", async () => {
-      const cohort = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
+      const cohort = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
       const user = await createTestUser("carol@test.com", "Carol");
       await addMember({ cohort_id: cohort.id, user_id: user.id, role_in_cohort: "student" });
 
@@ -184,13 +232,21 @@ describe("cohorts service", () => {
     });
 
     it("returns false when removing nonexistent membership", async () => {
-      const cohort = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
+      const cohort = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
       const removed = await removeMember(cohort.id, "00000000-0000-0000-0000-000000000000");
       expect(removed).toBe(false);
     });
 
     it("detects instructor role", async () => {
-      const cohort = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
+      const cohort = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
       const user = await createTestUser("dave@test.com", "Dave");
       await addMember({ cohort_id: cohort.id, user_id: user.id, role_in_cohort: "instructor" });
 
@@ -198,7 +254,11 @@ describe("cohorts service", () => {
     });
 
     it("returns false for non-instructor", async () => {
-      const cohort = await createCohort({ name: "Q1", start_date: "2026-01-01", end_date: "2026-03-31" });
+      const cohort = await createCohort({
+        name: "Q1",
+        start_date: "2026-01-01",
+        end_date: "2026-03-31",
+      });
       const user = await createTestUser("eve@test.com", "Eve");
       await addMember({ cohort_id: cohort.id, user_id: user.id, role_in_cohort: "student" });
 

@@ -30,10 +30,7 @@ beforeEach(async () => {
     .returning();
   testUser = user;
 
-  const [ws] = await getDb()
-    .insert(workspaces)
-    .values({ type: "cohort", name: "Q1" })
-    .returning();
+  const [ws] = await getDb().insert(workspaces).values({ type: "cohort", name: "Q1" }).returning();
 
   const [thread] = await getDb()
     .insert(threads)
@@ -44,7 +41,10 @@ beforeEach(async () => {
   // Mock fetch to avoid real HTTP requests
   globalThis.fetch = vi.fn().mockResolvedValue({
     ok: true,
-    text: () => Promise.resolve('<html><head><meta property="og:title" content="Test Title"><meta property="og:description" content="Test Desc"></head></html>'),
+    text: () =>
+      Promise.resolve(
+        '<html><head><meta property="og:title" content="Test Title"><meta property="og:description" content="Test Desc"></head></html>',
+      ),
   }) as unknown as typeof fetch;
 });
 
@@ -70,13 +70,18 @@ describe("bookmarks service", () => {
 
     it("auto-increments position", async () => {
       await createBookmark({ thread_id: testThread.id, url: "https://example.com/1" });
-      const second = await createBookmark({ thread_id: testThread.id, url: "https://example.com/2" });
+      const second = await createBookmark({
+        thread_id: testThread.id,
+        url: "https://example.com/2",
+      });
 
       expect(second.position).toBe(1);
     });
 
     it("handles OGP fetch failure gracefully", async () => {
-      globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error")) as unknown as typeof fetch;
+      globalThis.fetch = vi
+        .fn()
+        .mockRejectedValue(new Error("Network error")) as unknown as typeof fetch;
 
       const bookmark = await createBookmark({
         thread_id: testThread.id,

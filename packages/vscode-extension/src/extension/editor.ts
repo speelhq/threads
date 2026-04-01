@@ -27,18 +27,11 @@ export class EditorManager {
       return;
     }
 
-    const panel = vscode.window.createWebviewPanel(
-      "threads.editor",
-      title,
-      vscode.ViewColumn.One,
-      {
-        enableScripts: true,
-        localResourceRoots: [
-          vscode.Uri.joinPath(this.extensionUri, "dist", "webview"),
-        ],
-        retainContextWhenHidden: true,
-      },
-    );
+    const panel = vscode.window.createWebviewPanel("threads.editor", title, vscode.ViewColumn.One, {
+      enableScripts: true,
+      localResourceRoots: [vscode.Uri.joinPath(this.extensionUri, "dist", "webview")],
+      retainContextWhenHidden: true,
+    });
 
     panel.webview.html = this.getHtml(panel.webview, threadId);
 
@@ -88,8 +81,12 @@ export class EditorManager {
   private getHtml(webview: vscode.Webview, threadId: string): string {
     const distWebview = vscode.Uri.joinPath(this.extensionUri, "dist", "webview");
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "editor.js"));
-    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "assets", "jsx-runtime.css"));
-    const codiconUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "assets", "codicon.css"));
+    const styleUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(distWebview, "assets", "jsx-runtime.css"),
+    );
+    const codiconUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(distWebview, "assets", "codicon.css"),
+    );
     const csp = `default-src 'none'; script-src ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};`;
 
     return `<!DOCTYPE html>

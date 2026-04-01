@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
 import app from "../app.js";
-import {
-  mockFirebaseToken,
-  resetFirebaseMocks,
-} from "./helpers.js";
+import { mockFirebaseToken, resetFirebaseMocks } from "./helpers.js";
 
 vi.mock("../services/auth.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/auth.js")>();
@@ -213,7 +210,11 @@ describe("Message endpoints", () => {
       authenticate();
       mockGetMessageById.mockResolvedValue({ ...sampleMessage, thread_id: "thread-1" });
       mockGetThreadOwnerId.mockResolvedValue("user-1");
-      mockUpdateMessage.mockResolvedValue({ ...sampleMessage, thread_id: "thread-1", body: "Updated" });
+      mockUpdateMessage.mockResolvedValue({
+        ...sampleMessage,
+        thread_id: "thread-1",
+        body: "Updated",
+      });
 
       const res = await request(app)
         .patch("/messages/msg-1")

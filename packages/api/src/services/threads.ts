@@ -12,12 +12,7 @@ export async function resolveWorkspaceId(userId: string): Promise<string | null>
     .select({ workspace_id: cohorts.workspace_id })
     .from(userCohorts)
     .innerJoin(cohorts, eq(userCohorts.cohort_id, cohorts.id))
-    .where(
-      and(
-        eq(userCohorts.user_id, userId),
-        eq(userCohorts.role_in_cohort, "student"),
-      ),
-    )
+    .where(and(eq(userCohorts.user_id, userId), eq(userCohorts.role_in_cohort, "student")))
     .orderBy(desc(userCohorts.created_at))
     .limit(1);
   return row?.workspace_id ?? null;
@@ -80,10 +75,7 @@ export async function listThreads(params: {
   }
 
   const rows = await baseQuery
-    .orderBy(
-      sql`pinned_at DESC NULLS LAST`,
-      desc(threads.updated_at),
-    )
+    .orderBy(sql`pinned_at DESC NULLS LAST`, desc(threads.updated_at))
     .limit(params.limit + 1);
 
   const hasMore = rows.length > params.limit;
@@ -102,9 +94,7 @@ export async function listThreads(params: {
       })
       .from(threadTags)
       .innerJoin(tags, eq(threadTags.tag_id, tags.id))
-      .where(
-        sql`${threadTags.thread_id} IN ${threadIds}`,
-      );
+      .where(sql`${threadTags.thread_id} IN ${threadIds}`);
 
     for (const tr of tagRows) {
       if (!tagMap[tr.thread_id]) tagMap[tr.thread_id] = [];
@@ -117,9 +107,7 @@ export async function listThreads(params: {
     tags: tagMap[t.id] ?? [],
   }));
 
-  const next_cursor = hasMore
-    ? items[items.length - 1].updated_at?.toISOString() ?? null
-    : null;
+  const next_cursor = hasMore ? (items[items.length - 1].updated_at?.toISOString() ?? null) : null;
 
   return { threads: threadsWithTags, next_cursor };
 }
@@ -197,61 +185,56 @@ export async function createThread(params: {
  * Get thread detail with messages, todos, bookmarks, tags.
  */
 export async function getThreadById(threadId: string) {
-  const [thread] = await getDb()
-    .select()
-    .from(threads)
-    .where(eq(threads.id, threadId))
-    .limit(1);
+  const [thread] = await getDb().select().from(threads).where(eq(threads.id, threadId)).limit(1);
 
   if (!thread) return null;
 
-  const [threadMessages, threadTodos, threadBookmarks, threadTagRows] =
-    await Promise.all([
-      getDb()
-        .select({
-          id: messages.id,
-          body: messages.body,
-          position: messages.position,
-          created_at: messages.created_at,
-          updated_at: messages.updated_at,
-        })
-        .from(messages)
-        .where(eq(messages.thread_id, threadId))
-        .orderBy(asc(messages.position)),
-      getDb()
-        .select({
-          id: todos.id,
-          content: todos.content,
-          position: todos.position,
-          completed_at: todos.completed_at,
-          created_at: todos.created_at,
-        })
-        .from(todos)
-        .where(eq(todos.thread_id, threadId))
-        .orderBy(asc(todos.position)),
-      getDb()
-        .select({
-          id: bookmarks.id,
-          url: bookmarks.url,
-          title: bookmarks.title,
-          description: bookmarks.description,
-          domain: bookmarks.domain,
-          position: bookmarks.position,
-          created_at: bookmarks.created_at,
-        })
-        .from(bookmarks)
-        .where(eq(bookmarks.thread_id, threadId))
-        .orderBy(asc(bookmarks.position)),
-      getDb()
-        .select({
-          id: tags.id,
-          name: tags.name,
-          type: tags.type,
-        })
-        .from(threadTags)
-        .innerJoin(tags, eq(threadTags.tag_id, tags.id))
-        .where(eq(threadTags.thread_id, threadId)),
-    ]);
+  const [threadMessages, threadTodos, threadBookmarks, threadTagRows] = await Promise.all([
+    getDb()
+      .select({
+        id: messages.id,
+        body: messages.body,
+        position: messages.position,
+        created_at: messages.created_at,
+        updated_at: messages.updated_at,
+      })
+      .from(messages)
+      .where(eq(messages.thread_id, threadId))
+      .orderBy(asc(messages.position)),
+    getDb()
+      .select({
+        id: todos.id,
+        content: todos.content,
+        position: todos.position,
+        completed_at: todos.completed_at,
+        created_at: todos.created_at,
+      })
+      .from(todos)
+      .where(eq(todos.thread_id, threadId))
+      .orderBy(asc(todos.position)),
+    getDb()
+      .select({
+        id: bookmarks.id,
+        url: bookmarks.url,
+        title: bookmarks.title,
+        description: bookmarks.description,
+        domain: bookmarks.domain,
+        position: bookmarks.position,
+        created_at: bookmarks.created_at,
+      })
+      .from(bookmarks)
+      .where(eq(bookmarks.thread_id, threadId))
+      .orderBy(asc(bookmarks.position)),
+    getDb()
+      .select({
+        id: tags.id,
+        name: tags.name,
+        type: tags.type,
+      })
+      .from(threadTags)
+      .innerJoin(tags, eq(threadTags.tag_id, tags.id))
+      .where(eq(threadTags.thread_id, threadId)),
+  ]);
 
   return {
     id: thread.id,
@@ -282,10 +265,7 @@ export async function getThreadOwnerId(threadId: string): Promise<string | null>
 /**
  * Update thread (title, pinned).
  */
-export async function updateThread(
-  threadId: string,
-  params: { title?: string; pinned?: boolean },
-) {
+export async function updateThread(threadId: string, params: { title?: string; pinned?: boolean }) {
   const updates: Record<string, unknown> = { updated_at: new Date() };
 
   if (params.title !== undefined) {

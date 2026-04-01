@@ -1,18 +1,46 @@
 {
   "name": "threads",
   "displayName": "Threads",
-  "description": "Thread-based note taking for programming students",
   "version": "0.0.1",
   "private": true,
-  "type": "module",
-  "engines": {
-    "vscode": "^1.110.0"
-  },
+  "description": "Thread-based note taking for programming students",
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "type": "module",
   "main": "./dist/extension/index.cjs",
+  "scripts": {
+    "build": "pnpm run build:extension && pnpm run build:webview",
+    "build:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.cjs --external:vscode --format=cjs --platform=node --sourcemap",
+    "build:webview": "vite build",
+    "dev": "concurrently \"pnpm run dev:extension\" \"pnpm run dev:webview\"",
+    "dev:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.cjs --external:vscode --format=cjs --platform=node --sourcemap --watch",
+    "dev:webview": "vite build --watch",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@threads/shared": "workspace:*",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^16.1.1",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/vscode": "^1.110.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vscode/codicons": "^0.0.45",
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.27.4",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.2",
+    "vitest": "^4.1.0"
+  },
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -67,36 +95,8 @@
       }
     }
   },
-  "scripts": {
-    "build": "pnpm run build:extension && pnpm run build:webview",
-    "build:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.cjs --external:vscode --format=cjs --platform=node --sourcemap",
-    "build:webview": "vite build",
-    "dev": "concurrently \"pnpm run dev:extension\" \"pnpm run dev:webview\"",
-    "dev:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.cjs --external:vscode --format=cjs --platform=node --sourcemap --watch",
-    "dev:webview": "vite build --watch",
-    "test": "vitest run"
-  },
-  "dependencies": {
-    "@threads/shared": "workspace:*",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-markdown": "^10.1.0",
-    "react-syntax-highlighter": "^16.1.1",
-    "remark-gfm": "^4.0.1"
-  },
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.2.2",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@types/react-syntax-highlighter": "^15.5.13",
-    "@types/vscode": "^1.110.0",
-    "@vitejs/plugin-react": "^6.0.1",
-    "@vscode/codicons": "^0.0.45",
-    "concurrently": "^9.2.1",
-    "esbuild": "^0.27.4",
-    "tailwindcss": "^4.2.2",
-    "typescript": "^6.0.2",
-    "vite": "^8.0.2",
-    "vitest": "^4.1.0"
+  "activationEvents": [],
+  "engines": {
+    "vscode": "^1.110.0"
   }
 }

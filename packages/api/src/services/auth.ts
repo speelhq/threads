@@ -44,8 +44,7 @@ export async function createUser(params: {
     return rows[0] ?? null;
   } catch (err: unknown) {
     // Drizzle wraps Postgres errors in DrizzleQueryError with the original as `cause`
-    const pgErr =
-      err instanceof Error && "cause" in err && err.cause ? err.cause : err;
+    const pgErr = err instanceof Error && "cause" in err && err.cause ? err.cause : err;
     if (
       typeof pgErr === "object" &&
       pgErr !== null &&

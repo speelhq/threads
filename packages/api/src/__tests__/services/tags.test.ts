@@ -39,25 +39,36 @@ beforeEach(async () => {
 
   const [instructor] = await getDb()
     .insert(users)
-    .values({ email: "instructor@test.com", display_name: "Instructor", external_auth_id: "uid-instructor" })
+    .values({
+      email: "instructor@test.com",
+      display_name: "Instructor",
+      external_auth_id: "uid-instructor",
+    })
     .returning();
   instructorUser = instructor;
 
   const [admin] = await getDb()
     .insert(users)
-    .values({ email: "admin@test.com", display_name: "Admin", role: "admin", external_auth_id: "uid-admin" })
+    .values({
+      email: "admin@test.com",
+      display_name: "Admin",
+      role: "admin",
+      external_auth_id: "uid-admin",
+    })
     .returning();
   adminUser = admin;
 
-  const [ws] = await getDb()
-    .insert(workspaces)
-    .values({ type: "cohort", name: "Q1" })
-    .returning();
+  const [ws] = await getDb().insert(workspaces).values({ type: "cohort", name: "Q1" }).returning();
   testWorkspace = ws;
 
   const [cohort] = await getDb()
     .insert(cohorts)
-    .values({ workspace_id: ws.id, name: "Q1 2026", start_date: "2026-01-01", end_date: "2026-12-31" })
+    .values({
+      workspace_id: ws.id,
+      name: "Q1 2026",
+      start_date: "2026-01-01",
+      end_date: "2026-12-31",
+    })
     .returning();
   testCohort = cohort;
 
@@ -91,9 +102,9 @@ describe("tags service", () => {
     it("throws TagAlreadyExistsError for duplicate name", async () => {
       await createCustomTag({ name: "Dup", user_id: testUser.id });
 
-      await expect(
-        createCustomTag({ name: "Dup", user_id: testUser.id }),
-      ).rejects.toThrow(TagAlreadyExistsError);
+      await expect(createCustomTag({ name: "Dup", user_id: testUser.id })).rejects.toThrow(
+        TagAlreadyExistsError,
+      );
     });
 
     it("allows same name for different users", async () => {
@@ -197,11 +208,26 @@ describe("tags service", () => {
         .returning();
       const [cohort2] = await getDb()
         .insert(cohorts)
-        .values({ workspace_id: ws2.id, name: "Q2 2026", start_date: "2026-04-01", end_date: "2026-12-31" })
+        .values({
+          workspace_id: ws2.id,
+          name: "Q2 2026",
+          start_date: "2026-04-01",
+          end_date: "2026-12-31",
+        })
         .returning();
 
-      await createPresetTag({ name: "Same", cohort_id: testCohort.id, user_id: adminUser.id, user_role: "admin" });
-      const tag = await createPresetTag({ name: "Same", cohort_id: cohort2.id, user_id: adminUser.id, user_role: "admin" });
+      await createPresetTag({
+        name: "Same",
+        cohort_id: testCohort.id,
+        user_id: adminUser.id,
+        user_role: "admin",
+      });
+      const tag = await createPresetTag({
+        name: "Same",
+        cohort_id: cohort2.id,
+        user_id: adminUser.id,
+        user_role: "admin",
+      });
 
       expect(tag.name).toBe("Same");
     });
@@ -209,7 +235,12 @@ describe("tags service", () => {
 
   describe("listTags", () => {
     it("returns preset + custom tags", async () => {
-      await createPresetTag({ name: "Preset", cohort_id: testCohort.id, user_id: adminUser.id, user_role: "admin" });
+      await createPresetTag({
+        name: "Preset",
+        cohort_id: testCohort.id,
+        user_id: adminUser.id,
+        user_role: "admin",
+      });
       await createCustomTag({ name: "Custom", user_id: testUser.id });
 
       const items = await listTags({ cohort_id: testCohort.id, user_id: testUser.id });
@@ -221,7 +252,12 @@ describe("tags service", () => {
     });
 
     it("includes global presets", async () => {
-      await createPresetTag({ name: "Global", cohort_id: null, user_id: adminUser.id, user_role: "admin" });
+      await createPresetTag({
+        name: "Global",
+        cohort_id: null,
+        user_id: adminUser.id,
+        user_role: "admin",
+      });
 
       const items = await listTags({ cohort_id: testCohort.id, user_id: testUser.id });
 
@@ -250,9 +286,7 @@ describe("tags service", () => {
       await createCustomTag({ name: "Existing", user_id: testUser.id });
       const tag = await createCustomTag({ name: "Other", user_id: testUser.id });
 
-      await expect(
-        updateTag(tag.id, { name: "Existing" }),
-      ).rejects.toThrow(TagAlreadyExistsError);
+      await expect(updateTag(tag.id, { name: "Existing" })).rejects.toThrow(TagAlreadyExistsError);
     });
 
     it("returns null for nonexistent tag", async () => {
@@ -280,8 +314,17 @@ describe("tags service", () => {
 
   describe("addTagToThread", () => {
     it("adds a preset tag", async () => {
-      const tag = await createPresetTag({ name: "Preset", cohort_id: testCohort.id, user_id: adminUser.id, user_role: "admin" });
-      const result = await addTagToThread({ thread_id: testThread.id, tag_id: tag.id, user_id: testUser.id });
+      const tag = await createPresetTag({
+        name: "Preset",
+        cohort_id: testCohort.id,
+        user_id: adminUser.id,
+        user_role: "admin",
+      });
+      const result = await addTagToThread({
+        thread_id: testThread.id,
+        tag_id: tag.id,
+        user_id: testUser.id,
+      });
 
       expect(result.thread_id).toBe(testThread.id);
       expect(result.tag_id).toBe(tag.id);
@@ -289,7 +332,11 @@ describe("tags service", () => {
 
     it("adds own custom tag", async () => {
       const tag = await createCustomTag({ name: "Mine", user_id: testUser.id });
-      const result = await addTagToThread({ thread_id: testThread.id, tag_id: tag.id, user_id: testUser.id });
+      const result = await addTagToThread({
+        thread_id: testThread.id,
+        tag_id: tag.id,
+        user_id: testUser.id,
+      });
 
       expect(result.tag_id).toBe(tag.id);
     });
@@ -304,7 +351,11 @@ describe("tags service", () => {
 
     it("throws InvalidTagError for nonexistent tag", async () => {
       await expect(
-        addTagToThread({ thread_id: testThread.id, tag_id: "00000000-0000-0000-0000-000000000000", user_id: testUser.id }),
+        addTagToThread({
+          thread_id: testThread.id,
+          tag_id: "00000000-0000-0000-0000-000000000000",
+          user_id: testUser.id,
+        }),
       ).rejects.toThrow(InvalidTagError);
     });
 

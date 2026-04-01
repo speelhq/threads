@@ -21,11 +21,7 @@ export async function listCohorts() {
   return rows;
 }
 
-export async function createCohort(params: {
-  name: string;
-  start_date: string;
-  end_date: string;
-}) {
+export async function createCohort(params: { name: string; start_date: string; end_date: string }) {
   return getDb().transaction(async (tx) => {
     const [workspace] = await tx
       .insert(workspaces)
@@ -115,10 +111,7 @@ export async function listMembers(cohortId: string) {
   return rows;
 }
 
-export async function isInstructorOfCohort(
-  userId: string,
-  cohortId: string,
-): Promise<boolean> {
+export async function isInstructorOfCohort(userId: string, cohortId: string): Promise<boolean> {
   const [row] = await getDb()
     .select({ user_id: userCohorts.user_id })
     .from(userCohorts)
@@ -169,8 +162,7 @@ export async function addMember(params: {
       });
     return { data: row };
   } catch (err: unknown) {
-    const pgErr =
-      err instanceof Error && "cause" in err && err.cause ? err.cause : err;
+    const pgErr = err instanceof Error && "cause" in err && err.cause ? err.cause : err;
     if (
       typeof pgErr === "object" &&
       pgErr !== null &&
@@ -186,12 +178,7 @@ export async function addMember(params: {
 export async function removeMember(cohortId: string, userId: string) {
   const deleted = await getDb()
     .delete(userCohorts)
-    .where(
-      and(
-        eq(userCohorts.cohort_id, cohortId),
-        eq(userCohorts.user_id, userId),
-      ),
-    )
+    .where(and(eq(userCohorts.cohort_id, cohortId), eq(userCohorts.user_id, userId)))
     .returning({ user_id: userCohorts.user_id });
   return deleted.length > 0;
 }

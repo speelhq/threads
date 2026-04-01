@@ -28,8 +28,7 @@ router.post("/signup", verifyToken, async (req, res) => {
     return;
   }
 
-  const { firebaseUid, firebaseEmail, firebaseName } =
-    req as TokenVerifiedRequest;
+  const { firebaseUid, firebaseEmail, firebaseName } = req as TokenVerifiedRequest;
 
   const displayName = parsed.data?.display_name ?? firebaseName;
   if (!displayName) {

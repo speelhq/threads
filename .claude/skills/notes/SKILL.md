@@ -99,29 +99,34 @@ Add the new step to `.notes/phase{N}/overview.md` step listing.
 Run a comprehensive check on ALL `.notes/` documents:
 
 ### Source code accuracy
+
 1. Read every `.notes/phase*/step*.md` and `.notes/phase*/overview.md`
 2. For each code snippet, compare against the actual source file
 3. For each command/handler table, verify completeness against source
 4. For each config value, verify against actual config files
 
 ### Style and structure
+
 1. Read [style-guide.md](style-guide.md)
 2. Check document structure against the style guide
 3. Check formatting conventions (section headers, explanation blocks, tables)
 
 ### Content quality
+
 1. For each implementation choice: can a reader understand WHY without reading source code?
 2. Are spec connections present where applicable?
 3. Are unimplemented features noted with spec Open Issues references?
 4. Are there "what goes wrong" explanations for non-obvious choices?
 
 ### Cross-document consistency
+
 1. No duplicate explanations across files (reference instead of repeat)
 2. Cross-references point to correct content
 3. Later steps note when earlier code was changed
 4. Consistent terminology across all documents
 
 Report all issues organized by file with severity:
+
 - **High**: Code snippet doesn't match source, or a design choice has no WHY explanation
 - **Medium**: Formatting doesn't follow style guide, or cross-reference is inaccurate
 - **Low**: Minor wording improvements, redundant content

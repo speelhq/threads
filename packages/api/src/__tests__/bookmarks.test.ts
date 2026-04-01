@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
 import app from "../app.js";
-import {
-  mockFirebaseToken,
-  resetFirebaseMocks,
-} from "./helpers.js";
+import { mockFirebaseToken, resetFirebaseMocks } from "./helpers.js";
 
 vi.mock("../services/auth.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/auth.js")>();
@@ -15,9 +12,14 @@ vi.mock("../services/cohorts.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/cohorts.js")>();
   return {
     ...actual,
-    listCohorts: vi.fn(), createCohort: vi.fn(), getCohortById: vi.fn(),
-    updateCohort: vi.fn(), listMembers: vi.fn(), addMember: vi.fn(),
-    removeMember: vi.fn(), isInstructorOfCohort: vi.fn(),
+    listCohorts: vi.fn(),
+    createCohort: vi.fn(),
+    getCohortById: vi.fn(),
+    updateCohort: vi.fn(),
+    listMembers: vi.fn(),
+    addMember: vi.fn(),
+    removeMember: vi.fn(),
+    isInstructorOfCohort: vi.fn(),
   };
 });
 
@@ -25,8 +27,12 @@ vi.mock("../services/threads.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/threads.js")>();
   return {
     ...actual,
-    listThreads: vi.fn(), createThread: vi.fn(), getThreadById: vi.fn(),
-    getThreadOwnerId: vi.fn(), updateThread: vi.fn(), deleteThread: vi.fn(),
+    listThreads: vi.fn(),
+    createThread: vi.fn(),
+    getThreadById: vi.fn(),
+    getThreadOwnerId: vi.fn(),
+    updateThread: vi.fn(),
+    deleteThread: vi.fn(),
     resolveWorkspaceId: vi.fn(),
   };
 });
@@ -35,8 +41,12 @@ vi.mock("../services/messages.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/messages.js")>();
   return {
     ...actual,
-    listMessages: vi.fn(), createMessage: vi.fn(), getMessageById: vi.fn(),
-    updateMessage: vi.fn(), deleteMessage: vi.fn(), reorderMessages: vi.fn(),
+    listMessages: vi.fn(),
+    createMessage: vi.fn(),
+    getMessageById: vi.fn(),
+    updateMessage: vi.fn(),
+    deleteMessage: vi.fn(),
+    reorderMessages: vi.fn(),
   };
 });
 
@@ -44,8 +54,12 @@ vi.mock("../services/todos.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/todos.js")>();
   return {
     ...actual,
-    listTodos: vi.fn(), createTodo: vi.fn(), getTodoById: vi.fn(),
-    updateTodo: vi.fn(), deleteTodo: vi.fn(), listCrossThreadTodos: vi.fn(),
+    listTodos: vi.fn(),
+    createTodo: vi.fn(),
+    getTodoById: vi.fn(),
+    updateTodo: vi.fn(),
+    deleteTodo: vi.fn(),
+    listCrossThreadTodos: vi.fn(),
   };
 });
 
@@ -53,15 +67,22 @@ vi.mock("../services/bookmarks.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/bookmarks.js")>();
   return {
     ...actual,
-    listBookmarks: vi.fn(), createBookmark: vi.fn(), getBookmarkById: vi.fn(),
-    updateBookmark: vi.fn(), deleteBookmark: vi.fn(),
+    listBookmarks: vi.fn(),
+    createBookmark: vi.fn(),
+    getBookmarkById: vi.fn(),
+    updateBookmark: vi.fn(),
+    deleteBookmark: vi.fn(),
   };
 });
 
 import { findUserByExternalId } from "../services/auth.js";
 import { getThreadOwnerId } from "../services/threads.js";
 import {
-  listBookmarks, createBookmark, getBookmarkById, updateBookmark, deleteBookmark,
+  listBookmarks,
+  createBookmark,
+  getBookmarkById,
+  updateBookmark,
+  deleteBookmark,
   InvalidUrlError,
 } from "../services/bookmarks.js";
 
@@ -210,7 +231,11 @@ describe("Bookmark endpoints", () => {
       authenticate();
       mockGetBookmarkById.mockResolvedValue({ ...sampleBookmark, thread_id: "thread-1" });
       mockGetThreadOwnerId.mockResolvedValue("user-1");
-      mockUpdateBookmark.mockResolvedValue({ ...sampleBookmark, thread_id: "thread-1", title: "New Title" });
+      mockUpdateBookmark.mockResolvedValue({
+        ...sampleBookmark,
+        thread_id: "thread-1",
+        title: "New Title",
+      });
 
       const res = await request(app)
         .patch("/bookmarks/bm-1")

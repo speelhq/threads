@@ -101,7 +101,10 @@ function MainView() {
     const firstExpandedTag = tags.find((t) => expandedTags.has(t.id));
     const tagId = firstExpandedTag?.id ?? tags[0]?.id;
     try {
-      const thread = await createThread({ title: "New Thread", tagIds: tagId ? [tagId] : undefined });
+      const thread = await createThread({
+        title: "New Thread",
+        tagIds: tagId ? [tagId] : undefined,
+      });
       await loadThreads();
       void openThread({ id: thread.id, title: thread.title });
     } catch {}
@@ -145,7 +148,9 @@ function MainView() {
                 className="flex items-center gap-1 px-3 py-1 cursor-pointer opacity-80 hover:opacity-100 hover:bg-[var(--vscode-list-hoverBackground)]"
                 onClick={() => toggleTag(tag.id)}
               >
-                <span className={`codicon codicon-chevron-${expanded ? "down" : "right"} text-[10px] opacity-60`} />
+                <span
+                  className={`codicon codicon-chevron-${expanded ? "down" : "right"} text-[10px] opacity-60`}
+                />
                 <span className="flex-1 font-medium"># {tag.name}</span>
                 {threads.length > 0 && (
                   <span className="text-[10px] opacity-40">{threads.length}</span>
@@ -160,7 +165,9 @@ function MainView() {
                       onClick={() => void openThread({ id: thread.id, title: thread.title })}
                     >
                       <span className="flex-1 truncate">{thread.title}</span>
-                      <span className="text-[10px] opacity-40 shrink-0">{formatTime(thread.updatedAt)}</span>
+                      <span className="text-[10px] opacity-40 shrink-0">
+                        {formatTime(thread.updatedAt)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -179,9 +186,7 @@ function MainView() {
           <span className="codicon codicon-checklist text-sm" />
           Todos
         </button>
-        <button
-          className="flex items-center gap-2 w-full px-1 py-1 bg-transparent border-none cursor-pointer text-[var(--vscode-foreground)] opacity-70 hover:opacity-100 hover:bg-[var(--vscode-list-hoverBackground)] rounded text-xs"
-        >
+        <button className="flex items-center gap-2 w-full px-1 py-1 bg-transparent border-none cursor-pointer text-[var(--vscode-foreground)] opacity-70 hover:opacity-100 hover:bg-[var(--vscode-list-hoverBackground)] rounded text-xs">
           <span className="codicon codicon-gear text-sm" />
           Settings
         </button>

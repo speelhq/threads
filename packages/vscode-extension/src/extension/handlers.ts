@@ -16,10 +16,7 @@ export type HandlerMap = {
 
 // ── Shared handlers ──
 
-export function createSharedHandlers(
-  apiClient: IApiClient,
-  eventBus: EventBus,
-): HandlerMap {
+export function createSharedHandlers(apiClient: IApiClient, eventBus: EventBus): HandlerMap {
   return {
     // Threads
     "threads.list": async (p) => apiClient.listThreads(p),
@@ -38,17 +35,20 @@ export function createSharedHandlers(
     // Messages
     "messages.create": async (p) => apiClient.createMessage(p.threadId, { body: p.body }),
     "messages.update": async (p) => apiClient.updateMessage(p.id, { body: p.body }),
-    "messages.reorder": async (p) => apiClient.reorderMessages(p.threadId, { message_ids: p.messageIds }),
+    "messages.reorder": async (p) =>
+      apiClient.reorderMessages(p.threadId, { message_ids: p.messageIds }),
 
     // TODOs
     "todos.listCrossThread": async (p) => apiClient.listCrossThreadTodos(p),
     "todos.create": async (p) => apiClient.createTodo(p.threadId, { content: p.content }),
-    "todos.update": async (p) => apiClient.updateTodo(p.id, { content: p.content, completed: p.completed }),
+    "todos.update": async (p) =>
+      apiClient.updateTodo(p.id, { content: p.content, completed: p.completed }),
     "todos.delete": async (p) => apiClient.deleteTodo(p.id),
 
     // Bookmarks
     "bookmarks.create": async (p) => apiClient.createBookmark(p.threadId, { url: p.url }),
-    "bookmarks.update": async (p) => apiClient.updateBookmark(p.id, { title: p.title, description: p.description }),
+    "bookmarks.update": async (p) =>
+      apiClient.updateBookmark(p.id, { title: p.title, description: p.description }),
     "bookmarks.delete": async (p) => apiClient.deleteBookmark(p.id),
 
     // Tags
@@ -70,7 +70,9 @@ export async function handleRequest(
   webview: vscode.Webview,
   msg: RequestMessage,
 ): Promise<void> {
-  const handler = (handlers as Record<string, ((p: unknown) => Promise<unknown>) | undefined>)[msg.command];
+  const handler = (handlers as Record<string, ((p: unknown) => Promise<unknown>) | undefined>)[
+    msg.command
+  ];
   if (!handler) {
     const res: ResponseMessage = {
       type: "response",

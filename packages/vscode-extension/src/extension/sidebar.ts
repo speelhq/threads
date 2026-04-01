@@ -30,9 +30,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [
-        vscode.Uri.joinPath(this.extensionUri, "dist", "webview"),
-      ],
+      localResourceRoots: [vscode.Uri.joinPath(this.extensionUri, "dist", "webview")],
     };
 
     webviewView.webview.html = this.getHtml(webviewView.webview);
@@ -61,9 +59,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   private createSidebarHandlers(): HandlerMap {
     return {
       "auth.getState": async () => this.authManager.getLastPayload(),
-      "auth.login": async () => { void vscode.commands.executeCommand("threads.login"); },
-      "auth.logout": async () => { void vscode.commands.executeCommand("threads.logout"); },
-      "threads.open": async (p) => { this.editorManager.openThread(p.id, p.title); },
+      "auth.login": async () => {
+        void vscode.commands.executeCommand("threads.login");
+      },
+      "auth.logout": async () => {
+        void vscode.commands.executeCommand("threads.logout");
+      },
+      "threads.open": async (p) => {
+        this.editorManager.openThread(p.id, p.title);
+      },
       "threads.delete": async (p) => {
         const answer = await vscode.window.showWarningMessage(
           "このスレッドと配下のメッセージ・TODO・ブックマークが全て削除されます。",
@@ -80,8 +84,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   private getHtml(webview: vscode.Webview): string {
     const distWebview = vscode.Uri.joinPath(this.extensionUri, "dist", "webview");
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "sidebar.js"));
-    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "assets", "jsx-runtime.css"));
-    const codiconUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "assets", "codicon.css"));
+    const styleUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(distWebview, "assets", "jsx-runtime.css"),
+    );
+    const codiconUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(distWebview, "assets", "codicon.css"),
+    );
     const csp = `default-src 'none'; script-src ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};`;
 
     return `<!DOCTYPE html>

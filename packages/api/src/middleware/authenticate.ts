@@ -43,11 +43,7 @@ function extractToken(req: Request): string | null {
 /**
  * Verifies Firebase token and sets req.firebaseUid / req.firebaseEmail.
  */
-export async function verifyToken(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
+export async function verifyToken(req: Request, res: Response, next: NextFunction): Promise<void> {
   const token = extractToken(req);
   if (!token) {
     res.status(401).json({
@@ -92,11 +88,7 @@ export async function verifyToken(
  * Looks up the user in the DB by req.firebaseUid and sets req.user.
  * Must be used after verifyToken.
  */
-export async function resolveUser(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
+export async function resolveUser(req: Request, res: Response, next: NextFunction): Promise<void> {
   if (!req.firebaseUid) {
     res.status(401).json({
       error: {
@@ -127,11 +119,7 @@ export async function resolveUser(
  * Requires the authenticated user to have admin role.
  * Must be used after resolveUser.
  */
-export function requireAdmin(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
+export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   if (!req.user || req.user.role !== "admin") {
     res.status(403).json({
       error: {

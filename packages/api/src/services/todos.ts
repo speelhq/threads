@@ -22,10 +22,7 @@ export async function listTodos(threadId: string) {
 /**
  * Create a todo in a thread. Auto-assigns position.
  */
-export async function createTodo(params: {
-  thread_id: string;
-  content: string;
-}) {
+export async function createTodo(params: { thread_id: string; content: string }) {
   return getDb().transaction(async (tx) => {
     const [maxRow] = await tx
       .select({
@@ -112,18 +109,14 @@ export async function updateTodo(
       updates.completed_at = null;
     }
 
-    const [todo] = await tx
-      .update(todos)
-      .set(updates)
-      .where(eq(todos.id, todoId))
-      .returning({
-        id: todos.id,
-        content: todos.content,
-        position: todos.position,
-        completed_at: todos.completed_at,
-        created_at: todos.created_at,
-        updated_at: todos.updated_at,
-      });
+    const [todo] = await tx.update(todos).set(updates).where(eq(todos.id, todoId)).returning({
+      id: todos.id,
+      content: todos.content,
+      position: todos.position,
+      completed_at: todos.completed_at,
+      created_at: todos.created_at,
+      updated_at: todos.updated_at,
+    });
 
     await tx
       .update(threads)
@@ -193,9 +186,7 @@ export async function listCrossThreadTodos(params: {
 
   const hasMore = rows.length > params.limit;
   const items = hasMore ? rows.slice(0, params.limit) : rows;
-  const next_cursor = hasMore
-    ? items[items.length - 1].created_at?.toISOString() ?? null
-    : null;
+  const next_cursor = hasMore ? (items[items.length - 1].created_at?.toISOString() ?? null) : null;
 
   const result = items.map((r) => ({
     id: r.id,

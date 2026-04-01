@@ -29,10 +29,7 @@ beforeEach(async () => {
     .returning();
   testUser = user;
 
-  const [ws] = await getDb()
-    .insert(workspaces)
-    .values({ type: "cohort", name: "Q1" })
-    .returning();
+  const [ws] = await getDb().insert(workspaces).values({ type: "cohort", name: "Q1" }).returning();
 
   const [thread] = await getDb()
     .insert(threads)
@@ -64,10 +61,7 @@ describe("messages service", () => {
     it("updates thread updated_at", async () => {
       // Set thread's updated_at to a known past value
       const past = new Date("2020-01-01T00:00:00.000Z");
-      await getDb()
-        .update(threads)
-        .set({ updated_at: past })
-        .where(eq(threads.id, testThread.id));
+      await getDb().update(threads).set({ updated_at: past }).where(eq(threads.id, testThread.id));
 
       await createMessage({ thread_id: testThread.id, body: "Hello" });
 
@@ -152,7 +146,11 @@ describe("messages service", () => {
       expect(first.messages).toHaveLength(2);
       expect(first.next_cursor).not.toBeNull();
 
-      const second = await listMessages({ thread_id: testThread.id, cursor: first.next_cursor!, limit: 2 });
+      const second = await listMessages({
+        thread_id: testThread.id,
+        cursor: first.next_cursor!,
+        limit: 2,
+      });
       expect(second.messages).toHaveLength(1);
       expect(second.next_cursor).toBeNull();
     });
@@ -184,18 +182,18 @@ describe("messages service", () => {
         .returning();
       const otherMsg = await createMessage({ thread_id: otherThread.id, body: "Other" });
 
-      await expect(
-        reorderMessages(testThread.id, [otherMsg.id]),
-      ).rejects.toThrow(InvalidMessageIdsError);
+      await expect(reorderMessages(testThread.id, [otherMsg.id])).rejects.toThrow(
+        InvalidMessageIdsError,
+      );
     });
 
     it("throws IncompleteMessageIdsError when not all messages included", async () => {
       const m1 = await createMessage({ thread_id: testThread.id, body: "First" });
       await createMessage({ thread_id: testThread.id, body: "Second" });
 
-      await expect(
-        reorderMessages(testThread.id, [m1.id]),
-      ).rejects.toThrow(IncompleteMessageIdsError);
+      await expect(reorderMessages(testThread.id, [m1.id])).rejects.toThrow(
+        IncompleteMessageIdsError,
+      );
     });
   });
 });

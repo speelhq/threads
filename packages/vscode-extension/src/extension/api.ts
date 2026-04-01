@@ -45,7 +45,12 @@ export interface IApiClient {
   login(): Promise<LoginResponse>;
   signup(body?: { display_name: string }): Promise<SignupResponse>;
   getMe(): Promise<LoginResponse>;
-  listThreads(params?: { tagId?: string; search?: string; cursor?: string; limit?: number }): Promise<{ threads: ThreadSummary[]; nextCursor: string | null }>;
+  listThreads(params?: {
+    tagId?: string;
+    search?: string;
+    cursor?: string;
+    limit?: number;
+  }): Promise<{ threads: ThreadSummary[]; nextCursor: string | null }>;
   getThread(id: string): Promise<ThreadDetail>;
   createThread(body: { title: string; tag_ids?: string[] }): Promise<ThreadSummary>;
   updateThread(id: string, body: { title?: string; pinned?: boolean }): Promise<ThreadSummary>;
@@ -53,8 +58,15 @@ export interface IApiClient {
   createMessage(threadId: string, body: { body: string }): Promise<MessageItem>;
   updateMessage(id: string, body: { body: string }): Promise<MessageItem>;
   deleteMessage(id: string): Promise<void>;
-  reorderMessages(threadId: string, body: { message_ids: string[] }): Promise<{ messages: { id: string; position: number }[] }>;
-  listCrossThreadTodos(params: { completed: boolean; cursor?: string; limit?: number }): Promise<{ todos: CrossThreadTodo[]; nextCursor: string | null }>;
+  reorderMessages(
+    threadId: string,
+    body: { message_ids: string[] },
+  ): Promise<{ messages: { id: string; position: number }[] }>;
+  listCrossThreadTodos(params: {
+    completed: boolean;
+    cursor?: string;
+    limit?: number;
+  }): Promise<{ todos: CrossThreadTodo[]; nextCursor: string | null }>;
   createTodo(threadId: string, body: { content: string }): Promise<TodoItem>;
   updateTodo(id: string, body: { content?: string; completed?: boolean }): Promise<TodoItem>;
   deleteTodo(id: string): Promise<void>;
@@ -63,7 +75,10 @@ export interface IApiClient {
   deleteBookmark(id: string): Promise<void>;
   listTags(params: { cohortId: string }): Promise<{ tags: Tag[] }>;
   createTag(body: { name: string }): Promise<Tag>;
-  addThreadTag(threadId: string, tagId: string): Promise<{ threadId: string; tagId: string; createdAt: string }>;
+  addThreadTag(
+    threadId: string,
+    tagId: string,
+  ): Promise<{ threadId: string; tagId: string; createdAt: string }>;
   removeThreadTag(threadId: string, tagId: string): Promise<void>;
 }
 
@@ -94,21 +109,13 @@ export class ApiClient implements IApiClient {
 
   // ── Threads ──
 
-  async listThreads(params?: {
-    tagId?: string;
-    search?: string;
-    cursor?: string;
-    limit?: number;
-  }) {
+  async listThreads(params?: { tagId?: string; search?: string; cursor?: string; limit?: number }) {
     const query = new URLSearchParams();
     if (params?.tagId) query.set("tag_id", params.tagId);
     if (params?.search) query.set("search", params.search);
     if (params?.cursor) query.set("cursor", params.cursor);
     if (params?.limit) query.set("limit", String(params.limit));
-    return this.get<{ threads: ThreadSummary[]; nextCursor: string | null }>(
-      "/threads",
-      query,
-    );
+    return this.get<{ threads: ThreadSummary[]; nextCursor: string | null }>("/threads", query);
   }
 
   async getThread(id: string) {
@@ -119,10 +126,7 @@ export class ApiClient implements IApiClient {
     return this.request<ThreadSummary>("POST", "/threads", body);
   }
 
-  async updateThread(
-    id: string,
-    body: { title?: string; pinned?: boolean },
-  ) {
+  async updateThread(id: string, body: { title?: string; pinned?: boolean }) {
     return this.request<ThreadSummary>("PATCH", `/threads/${id}`, body);
   }
 
@@ -133,11 +137,7 @@ export class ApiClient implements IApiClient {
   // ── Messages ──
 
   async createMessage(threadId: string, body: { body: string }) {
-    return this.request<MessageItem>(
-      "POST",
-      `/threads/${threadId}/messages`,
-      body,
-    );
+    return this.request<MessageItem>("POST", `/threads/${threadId}/messages`, body);
   }
 
   async updateMessage(id: string, body: { body: string }) {
@@ -148,10 +148,7 @@ export class ApiClient implements IApiClient {
     return this.request<void>("DELETE", `/messages/${id}`);
   }
 
-  async reorderMessages(
-    threadId: string,
-    body: { message_ids: string[] },
-  ) {
+  async reorderMessages(threadId: string, body: { message_ids: string[] }) {
     return this.request<{ messages: { id: string; position: number }[] }>(
       "PATCH",
       `/threads/${threadId}/messages/reorder`,
@@ -161,33 +158,19 @@ export class ApiClient implements IApiClient {
 
   // ── TODOs ──
 
-  async listCrossThreadTodos(params: {
-    completed: boolean;
-    cursor?: string;
-    limit?: number;
-  }) {
+  async listCrossThreadTodos(params: { completed: boolean; cursor?: string; limit?: number }) {
     const query = new URLSearchParams();
     query.set("completed", String(params.completed));
     if (params.cursor) query.set("cursor", params.cursor);
     if (params.limit) query.set("limit", String(params.limit));
-    return this.get<{ todos: CrossThreadTodo[]; nextCursor: string | null }>(
-      "/todos",
-      query,
-    );
+    return this.get<{ todos: CrossThreadTodo[]; nextCursor: string | null }>("/todos", query);
   }
 
   async createTodo(threadId: string, body: { content: string }) {
-    return this.request<TodoItem>(
-      "POST",
-      `/threads/${threadId}/todos`,
-      body,
-    );
+    return this.request<TodoItem>("POST", `/threads/${threadId}/todos`, body);
   }
 
-  async updateTodo(
-    id: string,
-    body: { content?: string; completed?: boolean },
-  ) {
+  async updateTodo(id: string, body: { content?: string; completed?: boolean }) {
     return this.request<TodoItem>("PATCH", `/todos/${id}`, body);
   }
 
@@ -198,17 +181,10 @@ export class ApiClient implements IApiClient {
   // ── Bookmarks ──
 
   async createBookmark(threadId: string, body: { url: string }) {
-    return this.request<BookmarkItem>(
-      "POST",
-      `/threads/${threadId}/bookmarks`,
-      body,
-    );
+    return this.request<BookmarkItem>("POST", `/threads/${threadId}/bookmarks`, body);
   }
 
-  async updateBookmark(
-    id: string,
-    body: { title?: string; description?: string },
-  ) {
+  async updateBookmark(id: string, body: { title?: string; description?: string }) {
     return this.request<BookmarkItem>("PATCH", `/bookmarks/${id}`, body);
   }
 
@@ -237,10 +213,7 @@ export class ApiClient implements IApiClient {
   }
 
   async removeThreadTag(threadId: string, tagId: string) {
-    return this.request<void>(
-      "DELETE",
-      `/threads/${threadId}/tags/${tagId}`,
-    );
+    return this.request<void>("DELETE", `/threads/${threadId}/tags/${tagId}`);
   }
 
   // ── Internal ──
@@ -250,11 +223,7 @@ export class ApiClient implements IApiClient {
     return this.request<T>("GET", `${path}${qs ? `?${qs}` : ""}`);
   }
 
-  private async request<T>(
-    method: string,
-    path: string,
-    body?: unknown,
-  ): Promise<T> {
+  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const res = await this.fetch(method, path, body);
 
     if (res.status === 401) {
@@ -269,11 +238,7 @@ export class ApiClient implements IApiClient {
     return this.handleResponse<T>(res);
   }
 
-  private async fetch(
-    method: string,
-    path: string,
-    body?: unknown,
-  ): Promise<Response> {
+  private async fetch(method: string, path: string, body?: unknown): Promise<Response> {
     const headers: Record<string, string> = {};
 
     const token = this.getToken();
@@ -304,13 +269,8 @@ export class ApiClient implements IApiClient {
     const data = await res.json();
 
     if (!res.ok) {
-      const error = (data as { error?: { code?: string; message?: string } })
-        ?.error;
-      throw new ApiError(
-        res.status,
-        error?.code ?? "UNKNOWN",
-        error?.message ?? res.statusText,
-      );
+      const error = (data as { error?: { code?: string; message?: string } })?.error;
+      throw new ApiError(res.status, error?.code ?? "UNKNOWN", error?.message ?? res.statusText);
     }
 
     return snakeToCamel(data) as T;

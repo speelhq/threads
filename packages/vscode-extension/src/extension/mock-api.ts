@@ -26,15 +26,47 @@ const threadDetails: Record<string, ThreadDetail> = {
     pinnedAt: now,
     tags: [tags[0]!],
     messages: [
-      { id: "msg-1", body: "## 変数の宣言\n\n`let`, `const`, `var` の違い:\n\n- **const**: 再代入不可。基本はこれを使う\n- **let**: 再代入が必要な場合\n- **var**: 使わない（スコープが関数単位で混乱する）\n\n```js\nconst name = \"World\";\nlet count = 0;\nconsole.log(\"Hello, \" + name + \"!\");\n```", position: 0, createdAt: now, updatedAt: now },
-      { id: "msg-2", body: "## 型の種類\n\n`string`, `number`, `boolean`, `null`, `undefined`, `object`\n\n> `typeof null === 'object'` は有名なバグ\n\n| 型 | 例 |\n|---|---|\n| string | `\"hello\"` |\n| number | `42` |\n| boolean | `true` |", position: 1, createdAt: now, updatedAt: now },
+      {
+        id: "msg-1",
+        body: '## 変数の宣言\n\n`let`, `const`, `var` の違い:\n\n- **const**: 再代入不可。基本はこれを使う\n- **let**: 再代入が必要な場合\n- **var**: 使わない（スコープが関数単位で混乱する）\n\n```js\nconst name = "World";\nlet count = 0;\nconsole.log("Hello, " + name + "!");\n```',
+        position: 0,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        id: "msg-2",
+        body: "## 型の種類\n\n`string`, `number`, `boolean`, `null`, `undefined`, `object`\n\n> `typeof null === 'object'` は有名なバグ\n\n| 型 | 例 |\n|---|---|\n| string | `\"hello\"` |\n| number | `42` |\n| boolean | `true` |",
+        position: 1,
+        createdAt: now,
+        updatedAt: now,
+      },
     ],
     todos: [
-      { id: "todo-1", content: "MDNのデータ型のページを読む", position: 0, completedAt: null, createdAt: now },
-      { id: "todo-2", content: "typeof の練習問題をやる", position: 1, completedAt: null, createdAt: now },
+      {
+        id: "todo-1",
+        content: "MDNのデータ型のページを読む",
+        position: 0,
+        completedAt: null,
+        createdAt: now,
+      },
+      {
+        id: "todo-2",
+        content: "typeof の練習問題をやる",
+        position: 1,
+        completedAt: null,
+        createdAt: now,
+      },
     ],
     bookmarks: [
-      { id: "bm-1", url: "https://developer.mozilla.org/ja/docs/Web/JavaScript/Data_structures", title: "JavaScript のデータ型とデータ構造 - MDN", description: "JavaScript の型についての詳細なリファレンス", domain: "developer.mozilla.org", position: 0, createdAt: now },
+      {
+        id: "bm-1",
+        url: "https://developer.mozilla.org/ja/docs/Web/JavaScript/Data_structures",
+        title: "JavaScript のデータ型とデータ構造 - MDN",
+        description: "JavaScript の型についての詳細なリファレンス",
+        domain: "developer.mozilla.org",
+        position: 0,
+        createdAt: now,
+      },
     ],
     createdAt: now,
     updatedAt: now,
@@ -46,7 +78,13 @@ const threadDetails: Record<string, ThreadDetail> = {
     pinnedAt: null,
     tags: [tags[0]!],
     messages: [
-      { id: "msg-3", body: "配列の基本メソッド: push, pop, shift, unshift, splice", position: 0, createdAt: now, updatedAt: now },
+      {
+        id: "msg-3",
+        body: "配列の基本メソッド: push, pop, shift, unshift, splice",
+        position: 0,
+        createdAt: now,
+        updatedAt: now,
+      },
     ],
     todos: [],
     bookmarks: [],
@@ -60,10 +98,22 @@ const threadDetails: Record<string, ThreadDetail> = {
     pinnedAt: null,
     tags: [tags[2]!],
     messages: [
-      { id: "msg-4", body: "SELECT文の基本構文\n\nSELECT column FROM table WHERE condition;", position: 0, createdAt: now, updatedAt: now },
+      {
+        id: "msg-4",
+        body: "SELECT文の基本構文\n\nSELECT column FROM table WHERE condition;",
+        position: 0,
+        createdAt: now,
+        updatedAt: now,
+      },
     ],
     todos: [
-      { id: "todo-3", content: "JOINの種類を整理する", position: 0, completedAt: null, createdAt: now },
+      {
+        id: "todo-3",
+        content: "JOINの種類を整理する",
+        position: 0,
+        completedAt: null,
+        createdAt: now,
+      },
     ],
     bookmarks: [],
     createdAt: now,
@@ -95,20 +145,28 @@ export class MockApiClient implements IApiClient {
       email: "dev@example.com",
       displayName: "Dev User",
       role: "member" as const,
-      cohorts: [{
-        cohortId: "dev-cohort-1",
-        workspaceId: "dev-workspace-1",
-        name: "Dev Cohort",
-        roleInCohort: "student" as const,
-        startDate: now,
-        endDate: now,
-      }],
+      cohorts: [
+        {
+          cohortId: "dev-cohort-1",
+          workspaceId: "dev-workspace-1",
+          name: "Dev Cohort",
+          roleInCohort: "student" as const,
+          startDate: now,
+          endDate: now,
+        },
+      ],
       createdAt: now,
     };
   }
 
   async signup() {
-    return { id: "dev-user-1", email: "dev@example.com", displayName: "Dev User", role: "member" as const, createdAt: now };
+    return {
+      id: "dev-user-1",
+      email: "dev@example.com",
+      displayName: "Dev User",
+      role: "member" as const,
+      createdAt: now,
+    };
   }
 
   async getMe() {
@@ -194,7 +252,10 @@ export class MockApiClient implements IApiClient {
   async deleteMessage(id: string) {
     for (const detail of Object.values(threadDetails)) {
       const idx = detail.messages.findIndex((m) => m.id === id);
-      if (idx !== -1) { detail.messages.splice(idx, 1); return; }
+      if (idx !== -1) {
+        detail.messages.splice(idx, 1);
+        return;
+      }
     }
   }
 
@@ -234,7 +295,8 @@ export class MockApiClient implements IApiClient {
       const todo = detail.todos.find((t) => t.id === id);
       if (todo) {
         if (body.content !== undefined) todo.content = body.content;
-        if (body.completed !== undefined) todo.completedAt = body.completed ? new Date().toISOString() : null;
+        if (body.completed !== undefined)
+          todo.completedAt = body.completed ? new Date().toISOString() : null;
         return todo;
       }
     }
@@ -244,7 +306,10 @@ export class MockApiClient implements IApiClient {
   async deleteTodo(id: string) {
     for (const detail of Object.values(threadDetails)) {
       const idx = detail.todos.findIndex((t) => t.id === id);
-      if (idx !== -1) { detail.todos.splice(idx, 1); return; }
+      if (idx !== -1) {
+        detail.todos.splice(idx, 1);
+        return;
+      }
     }
   }
 
@@ -279,7 +344,10 @@ export class MockApiClient implements IApiClient {
   async deleteBookmark(id: string) {
     for (const detail of Object.values(threadDetails)) {
       const idx = detail.bookmarks.findIndex((b) => b.id === id);
-      if (idx !== -1) { detail.bookmarks.splice(idx, 1); return; }
+      if (idx !== -1) {
+        detail.bookmarks.splice(idx, 1);
+        return;
+      }
     }
   }
 
@@ -288,7 +356,13 @@ export class MockApiClient implements IApiClient {
   }
 
   async createTag(body: { name: string }) {
-    const tag: Tag = { id: nextId("tag"), name: body.name, type: "custom", cohortId: null, createdAt: new Date().toISOString() };
+    const tag: Tag = {
+      id: nextId("tag"),
+      name: body.name,
+      type: "custom",
+      cohortId: null,
+      createdAt: new Date().toISOString(),
+    };
     tags.push(tag);
     return tag;
   }

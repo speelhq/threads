@@ -38,9 +38,11 @@ Unnumbered sections placed before implementation sections. They explain the prob
 Must directly motivate the implementation — not a reference listing.
 
 **Good** (motivates implementation):
+
 > Section titled "Multi-panel management challenges" lists 4 concrete challenges (duplicate prevention, cleanup, event broadcast, data consistency). EditorManager's Map pattern naturally follows.
 
 **Bad** (reference listing):
+
 > Section titled "What is WebviewPanel" lists the API surface without connecting to why EditorManager exists.
 
 ## Implementation Sections
@@ -85,6 +87,7 @@ Even with mocks, the connection fires and tests fail when DATABASE_URL is unset.
 ## Tables
 
 Use tables for:
+
 - Config field explanations
 - Package/dependency descriptions
 - Command/handler listings
@@ -107,6 +110,7 @@ When code from a previous step was changed in a later step, add a blockquote:
 ## File Listing (Last Section)
 
 Two variants:
+
 - `## Files created` — when the step only creates new files
 - `## Files changed` — when the step modifies existing files
 

@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
 import app from "../app.js";
-import {
-  mockFirebaseToken,
-  resetFirebaseMocks,
-} from "./helpers.js";
+import { mockFirebaseToken, resetFirebaseMocks } from "./helpers.js";
 
 vi.mock("../services/auth.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/auth.js")>();
@@ -105,9 +102,7 @@ describe("Cohort endpoints", () => {
       authenticateAs(memberUser);
       mockListCohorts.mockResolvedValue([sampleCohort]);
 
-      const res = await request(app)
-        .get("/cohorts")
-        .set("Authorization", "Bearer valid-token");
+      const res = await request(app).get("/cohorts").set("Authorization", "Bearer valid-token");
 
       expect(res.status).toBe(200);
       expect(res.body.cohorts).toHaveLength(1);
@@ -288,7 +283,13 @@ describe("Cohort endpoints", () => {
       authenticateAs(adminUser);
       mockGetCohortById.mockResolvedValue(sampleCohort);
       mockListMembers.mockResolvedValue([
-        { user_id: "u1", email: "a@x.com", display_name: "Alice", role_in_cohort: "student", created_at: "2026-01-01T00:00:00.000Z" },
+        {
+          user_id: "u1",
+          email: "a@x.com",
+          display_name: "Alice",
+          role_in_cohort: "student",
+          created_at: "2026-01-01T00:00:00.000Z",
+        },
       ]);
 
       const res = await request(app)
@@ -343,7 +344,12 @@ describe("Cohort endpoints", () => {
       authenticateAs(adminUser);
       mockGetCohortById.mockResolvedValue(sampleCohort);
       mockAddMember.mockResolvedValue({
-        data: { user_id: "u1", cohort_id: "cohort-1", role_in_cohort: "student", created_at: "2026-03-22T00:00:00.000Z" },
+        data: {
+          user_id: "u1",
+          cohort_id: "cohort-1",
+          role_in_cohort: "student",
+          created_at: "2026-03-22T00:00:00.000Z",
+        },
       });
 
       const res = await request(app)

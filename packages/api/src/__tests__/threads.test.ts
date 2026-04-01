@@ -1,10 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
 import app from "../app.js";
-import {
-  mockFirebaseToken,
-  resetFirebaseMocks,
-} from "./helpers.js";
+import { mockFirebaseToken, resetFirebaseMocks } from "./helpers.js";
 
 vi.mock("../services/auth.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/auth.js")>();
@@ -121,9 +118,7 @@ describe("Thread endpoints", () => {
       authenticateAs(studentUser);
       mockListThreads.mockResolvedValue({ threads: [sampleThread], next_cursor: null });
 
-      const res = await request(app)
-        .get("/threads")
-        .set("Authorization", "Bearer valid-token");
+      const res = await request(app).get("/threads").set("Authorization", "Bearer valid-token");
 
       expect(res.status).toBe(200);
       expect(res.body.threads).toHaveLength(1);

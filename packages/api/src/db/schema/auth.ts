@@ -1,11 +1,4 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  date,
-  timestamp,
-  primaryKey,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, date, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { userRoleEnum, cohortRoleEnum, workspaceTypeEnum } from "./enums.js";
 
 export const users = pgTable("users", {

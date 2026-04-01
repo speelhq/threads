@@ -1,10 +1,6 @@
 import { Router, type Router as RouterType } from "express";
 import { z } from "zod/v4";
-import {
-  verifyToken,
-  resolveUser,
-  type AuthenticatedRequest,
-} from "../middleware/authenticate.js";
+import { verifyToken, resolveUser, type AuthenticatedRequest } from "../middleware/authenticate.js";
 import { sendValidationError } from "../middleware/validate.js";
 import { getThreadOwnerId } from "../services/threads.js";
 import {
@@ -127,7 +123,10 @@ tagRoutes.post("/preset", verifyToken, resolveUser, async (req, res) => {
     }
     if (err instanceof TagAlreadyExistsError) {
       res.status(409).json({
-        error: { code: "TAG_ALREADY_EXISTS", message: "Preset tag with this name already exists in this scope" },
+        error: {
+          code: "TAG_ALREADY_EXISTS",
+          message: "Preset tag with this name already exists in this scope",
+        },
       });
       return;
     }

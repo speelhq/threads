@@ -5,11 +5,7 @@ import { threads, messages } from "../db/schema/threads.js";
 /**
  * List messages in a thread with cursor pagination.
  */
-export async function listMessages(params: {
-  thread_id: string;
-  cursor?: string;
-  limit: number;
-}) {
+export async function listMessages(params: { thread_id: string; cursor?: string; limit: number }) {
   const conditions = [eq(messages.thread_id, params.thread_id)];
 
   if (params.cursor) {
@@ -31,9 +27,7 @@ export async function listMessages(params: {
 
   const hasMore = rows.length > params.limit;
   const items = hasMore ? rows.slice(0, params.limit) : rows;
-  const next_cursor = hasMore
-    ? String(items[items.length - 1].position)
-    : null;
+  const next_cursor = hasMore ? String(items[items.length - 1].position) : null;
 
   return { messages: items, next_cursor };
 }
@@ -41,10 +35,7 @@ export async function listMessages(params: {
 /**
  * Create a message in a thread. Auto-assigns position.
  */
-export async function createMessage(params: {
-  thread_id: string;
-  body: string;
-}) {
+export async function createMessage(params: { thread_id: string; body: string }) {
   return getDb().transaction(async (tx) => {
     // Get next position
     const [maxRow] = await tx
@@ -188,10 +179,7 @@ export async function reorderMessages(threadId: string, messageIds: string[]) {
     }
 
     // Update thread's updated_at
-    await tx
-      .update(threads)
-      .set({ updated_at: new Date() })
-      .where(eq(threads.id, threadId));
+    await tx.update(threads).set({ updated_at: new Date() }).where(eq(threads.id, threadId));
 
     return result;
   });

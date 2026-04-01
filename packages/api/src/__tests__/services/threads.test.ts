@@ -27,10 +27,7 @@ async function createTestUser(email: string, name: string) {
 }
 
 async function createTestCohort(name: string) {
-  const [ws] = await getDb()
-    .insert(workspaces)
-    .values({ type: "cohort", name })
-    .returning();
+  const [ws] = await getDb().insert(workspaces).values({ type: "cohort", name }).returning();
   const [cohort] = await getDb()
     .insert(cohorts)
     .values({ workspace_id: ws.id, name, start_date: "2026-01-01", end_date: "2026-12-31" })
@@ -267,10 +264,12 @@ describe("threads service", () => {
         title: "With todos",
       });
 
-      await getDb().insert(todos).values([
-        { thread_id: created.id, content: "Todo 1", position: 0 },
-        { thread_id: created.id, content: "Todo 2", position: 1, completed_at: new Date() },
-      ]);
+      await getDb()
+        .insert(todos)
+        .values([
+          { thread_id: created.id, content: "Todo 1", position: 0 },
+          { thread_id: created.id, content: "Todo 2", position: 1, completed_at: new Date() },
+        ]);
 
       const updated = await updateThread(created.id, { title: "Updated" });
       expect(updated!.incomplete_todo_count).toBe(1);
@@ -315,8 +314,16 @@ describe("threads service", () => {
 
   describe("listThreads", () => {
     it("returns threads for user", async () => {
-      await createThread({ user_id: testUser.id, workspace_id: testWorkspace.id, title: "Thread 1" });
-      await createThread({ user_id: testUser.id, workspace_id: testWorkspace.id, title: "Thread 2" });
+      await createThread({
+        user_id: testUser.id,
+        workspace_id: testWorkspace.id,
+        title: "Thread 1",
+      });
+      await createThread({
+        user_id: testUser.id,
+        workspace_id: testWorkspace.id,
+        title: "Thread 2",
+      });
 
       const result = await listThreads({ user_id: testUser.id, limit: 20 });
       expect(result.threads).toHaveLength(2);
@@ -338,8 +345,16 @@ describe("threads service", () => {
     });
 
     it("filters by search", async () => {
-      await createThread({ user_id: testUser.id, workspace_id: testWorkspace.id, title: "JavaScript basics" });
-      await createThread({ user_id: testUser.id, workspace_id: testWorkspace.id, title: "Java generics" });
+      await createThread({
+        user_id: testUser.id,
+        workspace_id: testWorkspace.id,
+        title: "JavaScript basics",
+      });
+      await createThread({
+        user_id: testUser.id,
+        workspace_id: testWorkspace.id,
+        title: "Java generics",
+      });
 
       const result = await listThreads({ user_id: testUser.id, search: "JavaScript", limit: 20 });
       expect(result.threads).toHaveLength(1);
@@ -347,15 +362,31 @@ describe("threads service", () => {
     });
 
     it("paginates with cursor", async () => {
-      await createThread({ user_id: testUser.id, workspace_id: testWorkspace.id, title: "Thread 1" });
-      await createThread({ user_id: testUser.id, workspace_id: testWorkspace.id, title: "Thread 2" });
-      await createThread({ user_id: testUser.id, workspace_id: testWorkspace.id, title: "Thread 3" });
+      await createThread({
+        user_id: testUser.id,
+        workspace_id: testWorkspace.id,
+        title: "Thread 1",
+      });
+      await createThread({
+        user_id: testUser.id,
+        workspace_id: testWorkspace.id,
+        title: "Thread 2",
+      });
+      await createThread({
+        user_id: testUser.id,
+        workspace_id: testWorkspace.id,
+        title: "Thread 3",
+      });
 
       const first = await listThreads({ user_id: testUser.id, limit: 2 });
       expect(first.threads).toHaveLength(2);
       expect(first.next_cursor).not.toBeNull();
 
-      const second = await listThreads({ user_id: testUser.id, cursor: first.next_cursor!, limit: 2 });
+      const second = await listThreads({
+        user_id: testUser.id,
+        cursor: first.next_cursor!,
+        limit: 2,
+      });
       expect(second.threads).toHaveLength(1);
       expect(second.next_cursor).toBeNull();
     });

@@ -33,7 +33,11 @@ export function Markdown({ content }: { content: string }) {
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        code({ className, children, ...props }: HTMLAttributes<HTMLElement> & { children?: ReactNode }) {
+        code({
+          className,
+          children,
+          ...props
+        }: HTMLAttributes<HTMLElement> & { children?: ReactNode }) {
           const match = /language-(\w+)/.exec(className ?? "");
           const code = String(children).replace(/\n$/, "");
           if (match) {

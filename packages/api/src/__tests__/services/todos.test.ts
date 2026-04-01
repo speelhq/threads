@@ -26,10 +26,7 @@ beforeEach(async () => {
     .returning();
   testUser = user;
 
-  const [ws] = await getDb()
-    .insert(workspaces)
-    .values({ type: "cohort", name: "Q1" })
-    .returning();
+  const [ws] = await getDb().insert(workspaces).values({ type: "cohort", name: "Q1" }).returning();
 
   const [thread] = await getDb()
     .insert(threads)
@@ -187,7 +184,9 @@ describe("todos service", () => {
 
       await createTodo({ thread_id: testThread.id, content: "Mine" });
       await getDb().insert(todos).values({
-        thread_id: otherThread.id, content: "Not mine", position: 0,
+        thread_id: otherThread.id,
+        content: "Not mine",
+        position: 0,
       });
 
       const result = await listCrossThreadTodos({

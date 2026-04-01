@@ -8,6 +8,13 @@
     "format": "oxfmt --write .",
     "test": "vitest run"
   },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.0"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
@@ -18,12 +25,5 @@
       "protobufjs",
       "@firebase/util"
     ]
-  },
-  "devDependencies": {
-    "@types/node": "^25.5.0",
-    "oxfmt": "^0.41.0",
-    "oxlint": "^1.56.0",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
   }
 }

@@ -29,23 +29,29 @@ describe("snakeToCamelKey", () => {
 
 describe("snakeToCamel", () => {
   it("converts object keys", () => {
-    expect(snakeToCamel({ created_at: "2024-01-01", tag_id: "1" }))
-      .toEqual({ createdAt: "2024-01-01", tagId: "1" });
+    expect(snakeToCamel({ created_at: "2024-01-01", tag_id: "1" })).toEqual({
+      createdAt: "2024-01-01",
+      tagId: "1",
+    });
   });
 
   it("converts nested objects", () => {
-    expect(snakeToCamel({ thread: { pinned_at: "2024-01-01", updated_at: "2024-01-02" } }))
-      .toEqual({ thread: { pinnedAt: "2024-01-01", updatedAt: "2024-01-02" } });
+    expect(snakeToCamel({ thread: { pinned_at: "2024-01-01", updated_at: "2024-01-02" } })).toEqual(
+      { thread: { pinnedAt: "2024-01-01", updatedAt: "2024-01-02" } },
+    );
   });
 
   it("converts arrays of objects", () => {
-    expect(snakeToCamel([{ tag_id: "1" }, { tag_id: "2" }]))
-      .toEqual([{ tagId: "1" }, { tagId: "2" }]);
+    expect(snakeToCamel([{ tag_id: "1" }, { tag_id: "2" }])).toEqual([
+      { tagId: "1" },
+      { tagId: "2" },
+    ]);
   });
 
   it("converts nested arrays", () => {
-    expect(snakeToCamel({ threads: [{ created_at: "2024-01-01" }] }))
-      .toEqual({ threads: [{ createdAt: "2024-01-01" }] });
+    expect(snakeToCamel({ threads: [{ created_at: "2024-01-01" }] })).toEqual({
+      threads: [{ createdAt: "2024-01-01" }],
+    });
   });
 
   it("returns null as-is", () => {
@@ -71,7 +77,6 @@ describe("snakeToCamel", () => {
   });
 
   it("preserves null values in objects", () => {
-    expect(snakeToCamel({ pinned_at: null }))
-      .toEqual({ pinnedAt: null });
+    expect(snakeToCamel({ pinned_at: null })).toEqual({ pinnedAt: null });
   });
 });

@@ -1,10 +1,6 @@
 import { Router, type Router as RouterType } from "express";
 import { z } from "zod/v4";
-import {
-  verifyToken,
-  resolveUser,
-  type AuthenticatedRequest,
-} from "../middleware/authenticate.js";
+import { verifyToken, resolveUser, type AuthenticatedRequest } from "../middleware/authenticate.js";
 import { sendValidationError } from "../middleware/validate.js";
 import { getThreadOwnerId } from "../services/threads.js";
 import {

@@ -6,7 +6,9 @@ import type { RequestMessage } from "../protocol/index.js";
 import type * as vscode from "vscode";
 
 function mockWebview(): vscode.Webview & { postMessage: ReturnType<typeof vi.fn> } {
-  return { postMessage: vi.fn() } as unknown as vscode.Webview & { postMessage: ReturnType<typeof vi.fn> };
+  return { postMessage: vi.fn() } as unknown as vscode.Webview & {
+    postMessage: ReturnType<typeof vi.fn>;
+  };
 }
 
 function makeRequest(command: string, payload?: unknown): RequestMessage {
@@ -17,7 +19,18 @@ describe("handleRequest", () => {
   it("sends response with handler return value", async () => {
     const webview = mockWebview();
     const handlers: HandlerMap = {
-      "threads.get": async (p) => ({ id: p.id, title: "Test", workspaceId: "w1", pinnedAt: null, tags: [], messages: [], todos: [], bookmarks: [], createdAt: "", updatedAt: "" }),
+      "threads.get": async (p) => ({
+        id: p.id,
+        title: "Test",
+        workspaceId: "w1",
+        pinnedAt: null,
+        tags: [],
+        messages: [],
+        todos: [],
+        bookmarks: [],
+        createdAt: "",
+        updatedAt: "",
+      }),
     };
 
     await handleRequest(handlers, webview, makeRequest("threads.get", { id: "t1" }));
@@ -46,7 +59,9 @@ describe("handleRequest", () => {
   it("sends structured error for ApiError", async () => {
     const webview = mockWebview();
     const handlers: HandlerMap = {
-      "threads.get": async () => { throw new ApiError(404, "NOT_FOUND", "Thread not found"); },
+      "threads.get": async () => {
+        throw new ApiError(404, "NOT_FOUND", "Thread not found");
+      },
     };
 
     await handleRequest(handlers, webview, makeRequest("threads.get", { id: "t1" }));
@@ -62,7 +77,9 @@ describe("handleRequest", () => {
   it("sends UNKNOWN error for generic Error", async () => {
     const webview = mockWebview();
     const handlers: HandlerMap = {
-      "threads.get": async () => { throw new Error("something broke"); },
+      "threads.get": async () => {
+        throw new Error("something broke");
+      },
     };
 
     await handleRequest(handlers, webview, makeRequest("threads.get", { id: "t1" }));
@@ -78,7 +95,9 @@ describe("handleRequest", () => {
   it("sends UNKNOWN error for non-Error throw", async () => {
     const webview = mockWebview();
     const handlers: HandlerMap = {
-      "threads.get": async () => { throw "string error"; },
+      "threads.get": async () => {
+        throw "string error";
+      },
     };
 
     await handleRequest(handlers, webview, makeRequest("threads.get", { id: "t1" }));

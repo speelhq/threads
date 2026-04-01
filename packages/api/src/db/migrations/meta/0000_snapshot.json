@@ -60,12 +60,8 @@
           "name": "cohorts_workspace_id_workspaces_id_fk",
           "tableFrom": "cohorts",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -113,12 +109,8 @@
           "name": "user_cohorts_user_id_users_id_fk",
           "tableFrom": "user_cohorts",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -126,12 +118,8 @@
           "name": "user_cohorts_cohort_id_cohorts_id_fk",
           "tableFrom": "user_cohorts",
           "tableTo": "cohorts",
-          "columnsFrom": [
-            "cohort_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cohort_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -139,10 +127,7 @@
       "compositePrimaryKeys": {
         "user_cohorts_user_id_cohort_id_pk": {
           "name": "user_cohorts_user_id_cohort_id_pk",
-          "columns": [
-            "user_id",
-            "cohort_id"
-          ]
+          "columns": ["user_id", "cohort_id"]
         }
       },
       "uniqueConstraints": {},
@@ -209,16 +194,12 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         },
         "users_external_auth_id_unique": {
           "name": "users_external_auth_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "external_auth_id"
-          ]
+          "columns": ["external_auth_id"]
         }
       },
       "policies": {},
@@ -276,12 +257,8 @@
           "name": "workspaces_owner_id_users_id_fk",
           "tableFrom": "workspaces",
           "tableTo": "users",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -376,12 +353,8 @@
           "name": "bookmarks_thread_id_threads_id_fk",
           "tableFrom": "bookmarks",
           "tableTo": "threads",
-          "columnsFrom": [
-            "thread_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["thread_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -458,12 +431,8 @@
           "name": "messages_thread_id_threads_id_fk",
           "tableFrom": "messages",
           "tableTo": "threads",
-          "columnsFrom": [
-            "thread_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["thread_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -622,12 +591,8 @@
           "name": "tags_cohort_id_cohorts_id_fk",
           "tableFrom": "tags",
           "tableTo": "cohorts",
-          "columnsFrom": [
-            "cohort_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["cohort_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -635,12 +600,8 @@
           "name": "tags_created_by_users_id_fk",
           "tableFrom": "tags",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -681,12 +642,8 @@
           "name": "thread_tags_thread_id_threads_id_fk",
           "tableFrom": "thread_tags",
           "tableTo": "threads",
-          "columnsFrom": [
-            "thread_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["thread_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -694,12 +651,8 @@
           "name": "thread_tags_tag_id_tags_id_fk",
           "tableFrom": "thread_tags",
           "tableTo": "tags",
-          "columnsFrom": [
-            "tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tag_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -707,10 +660,7 @@
       "compositePrimaryKeys": {
         "thread_tags_thread_id_tag_id_pk": {
           "name": "thread_tags_thread_id_tag_id_pk",
-          "columns": [
-            "thread_id",
-            "tag_id"
-          ]
+          "columns": ["thread_id", "tag_id"]
         }
       },
       "uniqueConstraints": {},
@@ -805,12 +755,8 @@
           "name": "threads_user_id_users_id_fk",
           "tableFrom": "threads",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -818,12 +764,8 @@
           "name": "threads_workspace_id_workspaces_id_fk",
           "tableFrom": "threads",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -922,12 +864,8 @@
           "name": "todos_thread_id_threads_id_fk",
           "tableFrom": "todos",
           "tableTo": "threads",
-          "columnsFrom": [
-            "thread_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["thread_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -943,42 +881,27 @@
     "public.cohort_role": {
       "name": "cohort_role",
       "schema": "public",
-      "values": [
-        "student",
-        "instructor"
-      ]
+      "values": ["student", "instructor"]
     },
     "public.review_verdict": {
       "name": "review_verdict",
       "schema": "public",
-      "values": [
-        "approved",
-        "needs_revision"
-      ]
+      "values": ["approved", "needs_revision"]
     },
     "public.tag_type": {
       "name": "tag_type",
       "schema": "public",
-      "values": [
-        "preset",
-        "custom"
-      ]
+      "values": ["preset", "custom"]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "admin",
-        "member"
-      ]
+      "values": ["admin", "member"]
     },
     "public.workspace_type": {
       "name": "workspace_type",
       "schema": "public",
-      "values": [
-        "personal",
-        "cohort"
-      ]
+      "values": ["personal", "cohort"]
     }
   },
   "schemas": {},

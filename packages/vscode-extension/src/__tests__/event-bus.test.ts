@@ -12,7 +12,15 @@ describe("EventBus", () => {
     const webview = mockWebview();
     bus.subscribe("sub-1", webview);
 
-    bus.emit("threads.created", { id: "t1", title: "Test", pinnedAt: null, tags: [], incompleteTodoCount: 0, createdAt: "", updatedAt: "" });
+    bus.emit("threads.created", {
+      id: "t1",
+      title: "Test",
+      pinnedAt: null,
+      tags: [],
+      incompleteTodoCount: 0,
+      createdAt: "",
+      updatedAt: "",
+    });
 
     expect(webview.postMessage).toHaveBeenCalledWith({
       type: "event",
