@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import type {
+  Commands,
+  Events,
   RequestMessage,
   ResponseMessage,
   EventMessage,
@@ -46,25 +48,30 @@ window.addEventListener("message", (e: MessageEvent) => {
 });
 
 // Event listener registry
-type EventListener = (payload: unknown) => void;
-const eventListeners = new Map<string, Set<EventListener>>();
+const eventListeners = new Map<string, Set<(payload: unknown) => void>>();
 
-export function onEvent(event: string, fn: EventListener): () => void {
+export function onEvent<E extends keyof Events>(
+  event: E,
+  fn: (payload: Events[E]) => void,
+): () => void {
   let set = eventListeners.get(event);
   if (!set) {
     set = new Set();
     eventListeners.set(event, set);
   }
-  set.add(fn);
+  set.add(fn as (payload: unknown) => void);
   return () => {
-    set!.delete(fn);
+    set!.delete(fn as (payload: unknown) => void);
   };
 }
 
 // Send a request and wait for response
-function sendCommand<T>(command: string, payload?: unknown): Promise<T> {
+function sendCommand<C extends keyof Commands>(
+  command: C,
+  payload: Commands[C]["payload"],
+): Promise<Commands[C]["response"]> {
   const id = crypto.randomUUID();
-  return new Promise<T>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     pending.set(id, {
       resolve: resolve as (data: unknown) => void,
       reject,
@@ -74,18 +81,16 @@ function sendCommand<T>(command: string, payload?: unknown): Promise<T> {
   });
 }
 
-export function useCommand<T>(command: string) {
+export function useCommand<C extends keyof Commands>(command: C) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<{ code: string; message: string } | null>(
-    null,
-  );
+  const [error, setError] = useState<{ code: string; message: string } | null>(null);
 
   const execute = useCallback(
-    async (payload?: unknown): Promise<T> => {
+    async (payload: Commands[C]["payload"]): Promise<Commands[C]["response"]> => {
       setLoading(true);
       setError(null);
       try {
-        const result = await sendCommand<T>(command, payload);
+        const result = await sendCommand(command, payload);
         return result;
       } catch (err) {
         const e = err as { code: string; message: string };

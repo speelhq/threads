@@ -4,7 +4,7 @@ import type { ThreadSummary, Tag } from "../../protocol/index.js";
 
 export function App() {
   const [authenticated, setAuthenticated] = useState(false);
-  const { execute: getAuthState } = useCommand<{ user: unknown } | null>("auth.getState");
+  const { execute: getAuthState } = useCommand("auth.getState");
 
   useEffect(() => {
     // Fetch current auth state on mount (may have been set before webview loaded)
@@ -47,9 +47,9 @@ function MainView() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [threadsByTag, setThreadsByTag] = useState<Record<string, ThreadSummary[]>>({});
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
-  const { execute: fetchTags } = useCommand<{ tags: Tag[] }>("tags.list");
-  const { execute: fetchThreads } = useCommand<{ threads: ThreadSummary[]; nextCursor: string | null }>("threads.list");
-  const { execute: createThread } = useCommand<ThreadSummary>("threads.create");
+  const { execute: fetchTags } = useCommand("tags.list");
+  const { execute: fetchThreads } = useCommand("threads.list");
+  const { execute: createThread } = useCommand("threads.create");
   const { execute: openThread } = useCommand("threads.open");
 
   useEffect(() => {

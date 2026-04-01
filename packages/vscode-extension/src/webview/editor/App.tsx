@@ -3,7 +3,6 @@ import { useCommand } from "../hooks/useCommand.js";
 import { Markdown } from "../components/Markdown.js";
 import type {
   ThreadDetail,
-  ThreadSummary,
   MessageItem,
   TodoItem,
   BookmarkItem,
@@ -15,7 +14,7 @@ export function App() {
   const [thread, setThread] = useState<ThreadDetail | null>(null);
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
   const [showSidePanel, setShowSidePanel] = useState(false);
-  const { execute: fetchThread, loading } = useCommand<ThreadDetail>("threads.get");
+  const { execute: fetchThread, loading } = useCommand("threads.get");
   const messageListRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -110,7 +109,7 @@ function ThreadHeader({
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(thread.title);
   useEffect(() => { setTitle(thread.title); }, [thread.title]);
-  const { execute: updateThread } = useCommand<ThreadSummary>("threads.update");
+  const { execute: updateThread } = useCommand("threads.update");
   const { execute: deleteThread } = useCommand("threads.delete");
 
   async function handleSaveTitle() {
@@ -213,7 +212,7 @@ function MessageList({
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBody, setEditBody] = useState("");
-  const { execute: updateMessage } = useCommand<MessageItem>("messages.update");
+  const { execute: updateMessage } = useCommand("messages.update");
   const { execute: deleteMessage } = useCommand("messages.delete");
   const prevCountRef = useRef(messages.length);
 
@@ -358,7 +357,7 @@ function MessageInput({
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
 }) {
   const [body, setBody] = useState("");
-  const { execute: createMessage, loading } = useCommand<MessageItem>("messages.create");
+  const { execute: createMessage, loading } = useCommand("messages.create");
 
   async function handleSend() {
     if (!body.trim()) return;
@@ -415,8 +414,8 @@ function TodoPanel({
   onUpdate: () => Promise<void>;
 }) {
   const [newContent, setNewContent] = useState("");
-  const { execute: createTodo } = useCommand<TodoItem>("todos.create");
-  const { execute: updateTodo } = useCommand<TodoItem>("todos.update");
+  const { execute: createTodo } = useCommand("todos.create");
+  const { execute: updateTodo } = useCommand("todos.update");
   const { execute: deleteTodo } = useCommand("todos.delete");
 
   async function handleAdd() {
@@ -490,7 +489,7 @@ function BookmarkPanel({
   onUpdate: () => Promise<void>;
 }) {
   const [newUrl, setNewUrl] = useState("");
-  const { execute: createBookmark, loading } = useCommand<BookmarkItem>("bookmarks.create");
+  const { execute: createBookmark, loading } = useCommand("bookmarks.create");
   const { execute: deleteBookmark } = useCommand("bookmarks.delete");
 
   async function handleAdd() {
