@@ -147,9 +147,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private getHtml(webview: vscode.Webview): string {
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.extensionUri, "dist", "webview", "sidebar.js"),
-    );
+    const distWebview = vscode.Uri.joinPath(this.extensionUri, "dist", "webview");
+    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "sidebar.js"));
+    const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "assets", "jsx-runtime.css"));
     const csp = `default-src 'none'; script-src ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};`;
 
     return `<!DOCTYPE html>
@@ -159,16 +159,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   <meta http-equiv="Content-Security-Policy" content="${csp}" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Threads</title>
-  <style>
-    html { font-size: var(--vscode-font-size); }
-    body {
-      padding: 0;
-      margin: 0;
-      font-family: var(--vscode-font-family);
-      color: var(--vscode-foreground);
-      background-color: var(--vscode-sideBar-background);
-    }
-  </style>
+  <link rel="stylesheet" href="${styleUri}" />
 </head>
 <body>
   <div id="root"></div>
