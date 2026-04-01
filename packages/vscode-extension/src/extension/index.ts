@@ -5,6 +5,7 @@ import type { IApiClient } from "./api.js";
 import { MockApiClient } from "./mock-api.js";
 import { SidebarProvider } from "./sidebar.js";
 import { EditorManager } from "./editor.js";
+import { EventBus } from "./event-bus.js";
 
 const AUTH_CALLBACK_PAGE_URL = "http://localhost:5173/auth"; // TODO: configure per environment
 
@@ -69,29 +70,27 @@ export function activate(context: vscode.ExtensionContext) {
     });
   }
 
-  // Editor
-  editorManager = new EditorManager(context.extensionUri, apiClient);
+  const eventBus = new EventBus();
 
-  // Forward thread mutations from editor to sidebar
-  editorManager.setThreadEventListener((event, payload) => {
-    sidebarProvider.pushEvent(event, payload);
-  });
+  // Editor (created before sidebar so sidebar can reference it)
+  editorManager = new EditorManager(context.extensionUri, apiClient, eventBus);
 
   // Sidebar
   sidebarProvider = new SidebarProvider(
     context.extensionUri,
     authManager,
     apiClient,
+    eventBus,
+    editorManager,
   );
-  sidebarProvider.setEditorManager(editorManager);
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider("threads.sidebar", sidebarProvider),
   );
 
-  // Forward auth state changes to sidebar
+  // Forward auth state changes via event bus
   context.subscriptions.push(
     authManager.onStateChange((payload) => {
-      sidebarProvider.pushEvent("auth.stateChanged", payload);
+      eventBus.emit("auth.stateChanged", payload);
     }),
   );
 

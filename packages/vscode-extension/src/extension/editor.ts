@@ -1,29 +1,23 @@
 import * as vscode from "vscode";
-import type {
-  RequestMessage,
-  ResponseMessage,
-  EventMessage,
-} from "../protocol/index.js";
+import type { RequestMessage } from "../protocol/index.js";
 import type { IApiClient } from "./api.js";
-
-type CommandHandler = (payload: unknown) => Promise<unknown>;
-
-type ThreadEventListener = (event: string, payload: unknown) => void;
+import type { EventBus } from "./event-bus.js";
+import { createSharedHandlers, mergeHandlers, handleRequest } from "./handlers.js";
+import type { HandlerMap } from "./handlers.js";
 
 export class EditorManager {
   private panels = new Map<string, vscode.WebviewPanel>();
-  private handlers = new Map<string, CommandHandler>();
-  private onThreadEvent: ThreadEventListener | undefined;
+  private handlers: HandlerMap;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
     private readonly apiClient: IApiClient,
+    private readonly eventBus: EventBus,
   ) {
-    this.registerHandlers();
-  }
-
-  setThreadEventListener(listener: ThreadEventListener): void {
-    this.onThreadEvent = listener;
+    this.handlers = mergeHandlers(
+      createSharedHandlers(apiClient, eventBus),
+      this.createEditorHandlers(),
+    );
   }
 
   openThread(threadId: string, title: string): void {
@@ -50,145 +44,45 @@ export class EditorManager {
 
     panel.webview.onDidReceiveMessage((msg: RequestMessage) => {
       if (msg.type !== "request") return;
-      void this.handleRequest(panel.webview, msg);
+      void handleRequest(this.handlers, panel.webview, msg);
     });
 
+    // Subscribe to event bus; unsubscribe on dispose
+    const unsubscribe = this.eventBus.subscribe(threadId, panel.webview);
     panel.onDidDispose(() => {
+      unsubscribe();
       this.panels.delete(threadId);
     });
 
     this.panels.set(threadId, panel);
   }
 
-  pushEvent(event: string, payload: unknown): void {
-    const msg: EventMessage = { type: "event", event, payload };
-    for (const panel of this.panels.values()) {
-      void panel.webview.postMessage(msg);
-    }
-  }
-
-  private async handleRequest(
-    webview: vscode.Webview,
-    msg: RequestMessage,
-  ): Promise<void> {
-    const handler = this.handlers.get(msg.command);
-    if (!handler) {
-      const res: ResponseMessage = {
-        type: "response",
-        id: msg.id,
-        error: { code: "UNKNOWN_COMMAND", message: `Unknown command: ${msg.command}` },
-      };
-      void webview.postMessage(res);
-      return;
-    }
-
-    try {
-      const data = await handler(msg.payload);
-      const res: ResponseMessage = { type: "response", id: msg.id, data };
-      void webview.postMessage(res);
-    } catch (err) {
-      const error =
-        err instanceof Error
-          ? { code: (err as { code?: string }).code ?? "UNKNOWN", message: err.message }
-          : { code: "UNKNOWN", message: String(err) };
-      const res: ResponseMessage = { type: "response", id: msg.id, error };
-      void webview.postMessage(res);
-    }
-  }
-
-  private registerHandlers(): void {
-    // Thread
-    this.handlers.set("threads.get", async (p) => {
-      const { id } = p as { id: string };
-      return this.apiClient.getThread(id);
-    });
-    this.handlers.set("threads.update", async (p) => {
-      const body = p as { id: string; title?: string; pinned?: boolean };
-      const result = await this.apiClient.updateThread(body.id, body);
-      this.onThreadEvent?.("threads.updated", result);
-      return result;
-    });
-    this.handlers.set("threads.delete", async (p) => {
-      const { id } = p as { id: string };
-      const answer = await vscode.window.showWarningMessage(
-        "このスレッドと配下のメッセージ・TODO・ブックマークが全て削除されます。",
-        { modal: true },
-        "削除",
-      );
-      if (answer !== "削除") return;
-      await this.apiClient.deleteThread(id);
-      this.onThreadEvent?.("threads.deleted", { id });
-      const panel = this.panels.get(id);
-      if (panel) {
-        panel.dispose();
-      }
-    });
-
-    // Messages
-    this.handlers.set("messages.create", async (p) => {
-      const { threadId, body } = p as { threadId: string; body: string };
-      return this.apiClient.createMessage(threadId, { body });
-    });
-    this.handlers.set("messages.update", async (p) => {
-      const { id, body } = p as { id: string; body: string };
-      return this.apiClient.updateMessage(id, { body });
-    });
-    this.handlers.set("messages.delete", async (p) => {
-      const { id } = p as { id: string };
-      const answer = await vscode.window.showWarningMessage(
-        "このメッセージを削除しますか？",
-        { modal: true },
-        "削除",
-      );
-      if (answer !== "削除") return;
-      return this.apiClient.deleteMessage(id);
-    });
-    this.handlers.set("messages.reorder", async (p) => {
-      const { threadId, messageIds } = p as { threadId: string; messageIds: string[] };
-      return this.apiClient.reorderMessages(threadId, { message_ids: messageIds });
-    });
-
-    // TODOs
-    this.handlers.set("todos.create", async (p) => {
-      const { threadId, content } = p as { threadId: string; content: string };
-      return this.apiClient.createTodo(threadId, { content });
-    });
-    this.handlers.set("todos.update", async (p) => {
-      const body = p as { id: string; content?: string; completed?: boolean };
-      return this.apiClient.updateTodo(body.id, body);
-    });
-    this.handlers.set("todos.delete", async (p) => {
-      const { id } = p as { id: string };
-      return this.apiClient.deleteTodo(id);
-    });
-
-    // Bookmarks
-    this.handlers.set("bookmarks.create", async (p) => {
-      const { threadId, url } = p as { threadId: string; url: string };
-      return this.apiClient.createBookmark(threadId, { url });
-    });
-    this.handlers.set("bookmarks.update", async (p) => {
-      const body = p as { id: string; title?: string; description?: string };
-      return this.apiClient.updateBookmark(body.id, body);
-    });
-    this.handlers.set("bookmarks.delete", async (p) => {
-      const { id } = p as { id: string };
-      return this.apiClient.deleteBookmark(id);
-    });
-
-    // Tags on thread
-    this.handlers.set("threads.addTag", async (p) => {
-      const { threadId, tagId } = p as { threadId: string; tagId: string };
-      return this.apiClient.addThreadTag(threadId, tagId);
-    });
-    this.handlers.set("threads.removeTag", async (p) => {
-      const { threadId, tagId } = p as { threadId: string; tagId: string };
-      return this.apiClient.removeThreadTag(threadId, tagId);
-    });
-    this.handlers.set("tags.list", async (p) => {
-      const params = p as { cohortId: string };
-      return this.apiClient.listTags(params);
-    });
+  private createEditorHandlers(): HandlerMap {
+    return {
+      "threads.delete": async (p) => {
+        const answer = await vscode.window.showWarningMessage(
+          "このスレッドと配下のメッセージ・TODO・ブックマークが全て削除されます。",
+          { modal: true },
+          "削除",
+        );
+        if (answer !== "削除") return;
+        await this.apiClient.deleteThread(p.id);
+        this.eventBus.emit("threads.deleted", { id: p.id });
+        const panel = this.panels.get(p.id);
+        if (panel) {
+          panel.dispose();
+        }
+      },
+      "messages.delete": async (p) => {
+        const answer = await vscode.window.showWarningMessage(
+          "このメッセージを削除しますか？",
+          { modal: true },
+          "削除",
+        );
+        if (answer !== "削除") return;
+        return this.apiClient.deleteMessage(p.id);
+      },
+    };
   }
 
   private getHtml(webview: vscode.Webview, threadId: string): string {
