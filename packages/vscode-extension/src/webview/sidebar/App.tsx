@@ -185,7 +185,7 @@ function ThreadItem({ thread }: { thread: ThreadSummary }) {
       onClick={() => void openThread({ id: thread.id, title: thread.title })}
     >
       <div className="flex items-center gap-1">
-        {thread.pinnedAt && <span title="Pinned">📌</span>}
+        {thread.pinnedAt && <span className="codicon codicon-pinned" title="Pinned" />}
         <span className="font-medium">{thread.title}</span>
         {thread.incompleteTodoCount > 0 && (
           <span className="bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] rounded-full px-1.5 text-xs leading-relaxed">

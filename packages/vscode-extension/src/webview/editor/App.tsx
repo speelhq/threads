@@ -118,14 +118,14 @@ function ThreadHeader({
         className="bg-transparent border-none cursor-pointer px-1 py-0.5"
         title={thread.pinnedAt ? "Unpin" : "Pin"}
       >
-        {thread.pinnedAt ? "📌" : "📍"}
+        <span className={`codicon codicon-pin${thread.pinnedAt ? "ned" : ""}`} />
       </button>
       <button
         onClick={() => void handleDelete()}
         className="bg-transparent border-none cursor-pointer px-1 py-0.5"
         title="Delete thread"
       >
-        🗑️
+        <span className="codicon codicon-trash" />
       </button>
 
       <div className="flex gap-1 flex-wrap">
@@ -214,13 +214,13 @@ function MessageList({
                   onClick={() => { setEditingId(msg.id); setEditBody(msg.body); }}
                   className="bg-transparent border-none cursor-pointer px-1 py-0.5"
                 >
-                  ✏️
+                  <span className="codicon codicon-edit" />
                 </button>
                 <button
                   onClick={() => void handleDelete(msg.id)}
                   className="bg-transparent border-none cursor-pointer px-1 py-0.5"
                 >
-                  🗑️
+                  <span className="codicon codicon-trash" />
                 </button>
               </div>
             </div>
