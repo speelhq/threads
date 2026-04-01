@@ -14,6 +14,7 @@ const threadId = document.getElementById("root")!.dataset.threadId!;
 export function App() {
   const [thread, setThread] = useState<ThreadDetail | null>(null);
   const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
+  const [showSidePanel, setShowSidePanel] = useState(false);
   const { execute: fetchThread, loading } = useCommand<ThreadDetail>("threads.get");
   const messageListRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -67,7 +68,7 @@ export function App() {
   return (
     <div className="flex h-screen">
       <div className="flex-1 flex flex-col overflow-hidden">
-        <ThreadHeader thread={thread} onUpdate={loadThread} />
+        <ThreadHeader thread={thread} onUpdate={loadThread} showSidePanel={showSidePanel} onToggleSidePanel={() => setShowSidePanel((v) => !v)} />
         <MessageList
           messages={thread.messages}
           selectedId={selectedMsgId}
@@ -83,10 +84,12 @@ export function App() {
           inputRef={inputRef}
         />
       </div>
-      <div className="w-[280px] border-l border-[var(--vscode-panel-border)] overflow-auto">
-        <TodoPanel todos={thread.todos} threadId={threadId} onUpdate={loadThread} />
-        <BookmarkPanel bookmarks={thread.bookmarks} threadId={threadId} onUpdate={loadThread} />
-      </div>
+      {showSidePanel && (
+        <div className="w-[280px] shrink-0 border-l border-[var(--vscode-panel-border)] overflow-auto">
+          <TodoPanel todos={thread.todos} threadId={threadId} onUpdate={loadThread} />
+          <BookmarkPanel bookmarks={thread.bookmarks} threadId={threadId} onUpdate={loadThread} />
+        </div>
+      )}
     </div>
   );
 }
@@ -96,9 +99,13 @@ export function App() {
 function ThreadHeader({
   thread,
   onUpdate,
+  showSidePanel,
+  onToggleSidePanel,
 }: {
   thread: ThreadDetail;
   onUpdate: () => Promise<void>;
+  showSidePanel: boolean;
+  onToggleSidePanel: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(thread.title);
@@ -151,6 +158,13 @@ function ThreadHeader({
         </span>
       )}
 
+      <button
+        onClick={onToggleSidePanel}
+        className="bg-transparent border-none cursor-pointer px-1 py-0.5"
+        title={showSidePanel ? "Hide panel" : "Show panel"}
+      >
+        <span className={`codicon codicon-layout-sidebar-right${showSidePanel ? "" : "-off"}`} />
+      </button>
       <button
         onClick={() => void handleTogglePin()}
         className="bg-transparent border-none cursor-pointer px-1 py-0.5"
@@ -279,7 +293,7 @@ function MessageList({
     if (!selectedId) return;
     const el = listRef.current?.querySelector(`[data-msg-id="${selectedId}"]`);
     el?.scrollIntoView({ block: "nearest" });
-  }, [selectedId]);
+  }, [selectedId, editingId]);
 
   return (
     <div
@@ -295,16 +309,24 @@ function MessageList({
         <div
           key={msg.id}
           data-msg-id={msg.id}
-          className={`py-2 px-4 border-b border-[var(--vscode-panel-border)] last:border-b-0 ${
+          className={`py-2 px-4 border-b border-[var(--vscode-panel-border)] last:border-b-0 cursor-pointer ${
             selectedId === msg.id ? "bg-[var(--vscode-list-hoverBackground)]" : ""
           }`}
+          onClick={() => onSelect(msg.id)}
         >
           {editingId === msg.id ? (
             <div>
               <textarea
                 value={editBody}
-                onChange={(e) => setEditBody(e.target.value)}
-                className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm w-full min-h-[60px] resize-y"
+                onChange={(e) => {
+                  setEditBody(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = e.target.scrollHeight + "px";
+                }}
+                ref={(el) => {
+                  if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
+                }}
+                className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm w-full min-h-[60px] resize-y overflow-hidden"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Escape") { e.stopPropagation(); setEditingId(null); listRef.current?.focus(); }
