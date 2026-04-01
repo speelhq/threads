@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCommand } from "../hooks/useCommand.js";
+import { Markdown } from "../components/Markdown.js";
 import type {
   ThreadDetail,
   ThreadSummary,
@@ -12,7 +13,10 @@ const threadId = document.getElementById("root")!.dataset.threadId!;
 
 export function App() {
   const [thread, setThread] = useState<ThreadDetail | null>(null);
+  const [selectedMsgId, setSelectedMsgId] = useState<string | null>(null);
   const { execute: fetchThread, loading } = useCommand<ThreadDetail>("threads.get");
+  const messageListRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     void loadThread();
@@ -22,10 +26,35 @@ export function App() {
     try {
       const result = await fetchThread({ id: threadId });
       setThread(result);
-    } catch {
-      // Error handled by useCommand
-    }
+    } catch {}
   }
+
+  function enterNavigation() {
+    if (!thread || thread.messages.length === 0) return;
+    const last = thread.messages[thread.messages.length - 1]!;
+    setSelectedMsgId(last.id);
+    messageListRef.current?.focus();
+  }
+
+  function focusInput() {
+    setSelectedMsgId(null);
+    inputRef.current?.focus();
+  }
+
+  // Global "/" shortcut to focus input
+  useEffect(() => {
+    function handleGlobalKey(e: KeyboardEvent) {
+      // Skip if user is typing in an input/textarea
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "/") {
+        e.preventDefault();
+        focusInput();
+      }
+    }
+    document.addEventListener("keydown", handleGlobalKey);
+    return () => document.removeEventListener("keydown", handleGlobalKey);
+  }, []);
 
   if (loading && !thread) {
     return <div className="p-4 opacity-50">Loading...</div>;
@@ -39,8 +68,20 @@ export function App() {
     <div className="flex h-screen">
       <div className="flex-1 flex flex-col overflow-hidden">
         <ThreadHeader thread={thread} onUpdate={loadThread} />
-        <MessageList messages={thread.messages} threadId={threadId} onUpdate={loadThread} />
-        <MessageInput threadId={threadId} onSend={loadThread} />
+        <MessageList
+          messages={thread.messages}
+          selectedId={selectedMsgId}
+          onSelect={setSelectedMsgId}
+          onUpdate={loadThread}
+          onFocusInput={focusInput}
+          listRef={messageListRef}
+        />
+        <MessageInput
+          threadId={threadId}
+          onSend={loadThread}
+          onNavigateUp={enterNavigation}
+          inputRef={inputRef}
+        />
       </div>
       <div className="w-[280px] border-l border-[var(--vscode-panel-border)] overflow-auto">
         <TodoPanel todos={thread.todos} threadId={threadId} onUpdate={loadThread} />
@@ -81,17 +122,13 @@ function ThreadHeader({
     try {
       await updateThread({ id: thread.id, pinned: thread.pinnedAt == null });
       await onUpdate();
-    } catch {
-      // Error handled by useCommand
-    }
+    } catch {}
   }
 
   async function handleDelete() {
     try {
       await deleteThread({ id: thread.id });
-    } catch {
-      // Error handled by useCommand
-    }
+    } catch {}
   }
 
   return (
@@ -147,43 +184,121 @@ function ThreadHeader({
 
 function MessageList({
   messages,
-  threadId,
+  selectedId,
+  onSelect,
   onUpdate,
+  onFocusInput,
+  listRef,
 }: {
   messages: MessageItem[];
-  threadId: string;
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
   onUpdate: () => Promise<void>;
+  onFocusInput: () => void;
+  listRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBody, setEditBody] = useState("");
   const { execute: updateMessage } = useCommand<MessageItem>("messages.update");
   const { execute: deleteMessage } = useCommand("messages.delete");
+  const prevCountRef = useRef(messages.length);
+
+  useEffect(() => {
+    if (messages.length > prevCountRef.current) {
+      listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
+    }
+    prevCountRef.current = messages.length;
+  }, [messages.length]);
+
+  const selectedIndex = selectedId ? messages.findIndex((m) => m.id === selectedId) : -1;
 
   async function handleSave(id: string) {
     if (editBody.trim()) {
       try {
         await updateMessage({ id, body: editBody.trim() });
         await onUpdate();
-      } catch {
-        // Error handled by useCommand
-      }
+      } catch {}
     }
     setEditingId(null);
+    listRef.current?.focus();
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete() {
+    if (!selectedId) return;
+    // Compute next selection before deleting
+    const adjacent = messages[selectedIndex + 1] ?? messages[selectedIndex - 1];
+    const nextId = adjacent?.id ?? null;
     try {
-      await deleteMessage({ id });
+      await deleteMessage({ id: selectedId });
+      onSelect(nextId);
       await onUpdate();
-    } catch {
-      // Error handled by useCommand
+    } catch {}
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (editingId) return;
+
+    switch (e.key) {
+      case "ArrowUp":
+        e.preventDefault();
+        if (selectedIndex > 0) {
+          onSelect(messages[selectedIndex - 1]!.id);
+        } else if (selectedIndex === -1 && messages.length > 0) {
+          onSelect(messages[messages.length - 1]!.id);
+        }
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < messages.length - 1) {
+          onSelect(messages[selectedIndex + 1]!.id);
+        } else if (selectedIndex === messages.length - 1) {
+          onFocusInput();
+        }
+        break;
+      case "e":
+        e.preventDefault();
+        if (selectedId) {
+          const msg = messages.find((m) => m.id === selectedId);
+          if (msg) { setEditingId(msg.id); setEditBody(msg.body); }
+        }
+        break;
+      case "Delete":
+        e.preventDefault();
+        if (selectedId) {
+          void handleDelete();
+        }
+        break;
+      case "Escape":
+        e.preventDefault();
+        onSelect(null);
+        break;
     }
   }
 
+  useEffect(() => {
+    if (!selectedId) return;
+    const el = listRef.current?.querySelector(`[data-msg-id="${selectedId}"]`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [selectedId]);
+
   return (
-    <div className="flex-1 overflow-auto px-4 py-2">
+    <div
+      ref={listRef}
+      className="flex-1 overflow-auto py-2 outline-none"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
+      {messages.length === 0 && (
+        <div className="py-12 px-4 text-center opacity-30 text-sm">Write your first message</div>
+      )}
       {messages.map((msg) => (
-        <div key={msg.id} className="py-2 border-b border-[var(--vscode-panel-border)]">
+        <div
+          key={msg.id}
+          data-msg-id={msg.id}
+          className={`py-2 px-4 border-b border-[var(--vscode-panel-border)] last:border-b-0 ${
+            selectedId === msg.id ? "bg-[var(--vscode-list-hoverBackground)]" : ""
+          }`}
+        >
           {editingId === msg.id ? (
             <div>
               <textarea
@@ -191,40 +306,17 @@ function MessageList({
                 onChange={(e) => setEditBody(e.target.value)}
                 className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 rounded-sm w-full min-h-[60px] resize-y"
                 autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") { e.stopPropagation(); setEditingId(null); listRef.current?.focus(); }
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); void handleSave(msg.id); }
+                }}
               />
-              <div className="flex gap-1 mt-1">
-                <button
-                  onClick={() => void handleSave(msg.id)}
-                  className="bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setEditingId(null)}
-                  className="bg-[var(--vscode-button-secondaryBackground)] text-[var(--vscode-button-secondaryForeground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
-                >
-                  Cancel
-                </button>
+              <div className="mt-1 text-xs opacity-50">
+                Ctrl+Enter to save · Escape to cancel
               </div>
             </div>
           ) : (
-            <div>
-              <div className="whitespace-pre-wrap">{msg.body}</div>
-              <div className="flex gap-1 mt-1 opacity-50">
-                <button
-                  onClick={() => { setEditingId(msg.id); setEditBody(msg.body); }}
-                  className="bg-transparent border-none cursor-pointer px-1 py-0.5"
-                >
-                  <span className="codicon codicon-edit" />
-                </button>
-                <button
-                  onClick={() => void handleDelete(msg.id)}
-                  className="bg-transparent border-none cursor-pointer px-1 py-0.5"
-                >
-                  <span className="codicon codicon-trash" />
-                </button>
-              </div>
-            </div>
+            <div className="prose"><Markdown content={msg.body} /></div>
           )}
         </div>
       ))}
@@ -235,9 +327,13 @@ function MessageList({
 function MessageInput({
   threadId,
   onSend,
+  onNavigateUp,
+  inputRef,
 }: {
   threadId: string;
   onSend: () => Promise<void>;
+  onNavigateUp: () => void;
+  inputRef: React.RefObject<HTMLTextAreaElement | null>;
 }) {
   const [body, setBody] = useState("");
   const { execute: createMessage, loading } = useCommand<MessageItem>("messages.create");
@@ -248,18 +344,25 @@ function MessageInput({
       await createMessage({ threadId, body: body.trim() });
       setBody("");
       await onSend();
-    } catch {
-      // Error handled by useCommand
-    }
+    } catch {}
   }
 
   return (
     <div className="px-4 py-2 border-t border-[var(--vscode-panel-border)] flex gap-2">
       <textarea
+        ref={inputRef}
         value={body}
         onChange={(e) => setBody(e.target.value)}
         placeholder="Write a message..."
         onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            onNavigateUp();
+          }
+          if (e.key === "ArrowUp" && !body) {
+            e.preventDefault();
+            onNavigateUp();
+          }
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             void handleSend();
@@ -300,27 +403,15 @@ function TodoPanel({
       await createTodo({ threadId, content: newContent.trim() });
       setNewContent("");
       await onUpdate();
-    } catch {
-      // Error handled by useCommand
-    }
+    } catch {}
   }
 
   async function handleToggle(id: string, completed: boolean) {
-    try {
-      await updateTodo({ id, completed });
-      await onUpdate();
-    } catch {
-      // Error handled by useCommand
-    }
+    try { await updateTodo({ id, completed }); await onUpdate(); } catch {}
   }
 
   async function handleDelete(id: string) {
-    try {
-      await deleteTodo({ id });
-      await onUpdate();
-    } catch {
-      // Error handled by useCommand
-    }
+    try { await deleteTodo({ id }); await onUpdate(); } catch {}
   }
 
   return (
@@ -386,18 +477,11 @@ function BookmarkPanel({
       await createBookmark({ threadId, url: newUrl.trim() });
       setNewUrl("");
       await onUpdate();
-    } catch {
-      // Error handled by useCommand
-    }
+    } catch {}
   }
 
   async function handleDelete(id: string) {
-    try {
-      await deleteBookmark({ id });
-      await onUpdate();
-    } catch {
-      // Error handled by useCommand
-    }
+    try { await deleteBookmark({ id }); await onUpdate(); } catch {}
   }
 
   return (
@@ -437,9 +521,7 @@ function BookmarkPanel({
               </button>
             </div>
             {bm.description && (
-              <div className="text-sm opacity-70 mt-0.5">
-                {bm.description}
-              </div>
+              <div className="text-sm opacity-70 mt-0.5">{bm.description}</div>
             )}
             <div className="text-xs opacity-50">{bm.domain}</div>
           </li>

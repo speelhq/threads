@@ -26,8 +26,8 @@ const threadDetails: Record<string, ThreadDetail> = {
     pinnedAt: now,
     tags: [tags[0]!],
     messages: [
-      { id: "msg-1", body: "変数の宣言: let, const, var の違い\n\n- const: 再代入不可。基本はこれを使う\n- let: 再代入が必要な場合\n- var: 使わない（スコープが関数単位で混乱する）", position: 0, createdAt: now, updatedAt: now },
-      { id: "msg-2", body: "型の種類: string, number, boolean, null, undefined, object\n\ntypeof null === 'object' は有名なバグ", position: 1, createdAt: now, updatedAt: now },
+      { id: "msg-1", body: "## 変数の宣言\n\n`let`, `const`, `var` の違い:\n\n- **const**: 再代入不可。基本はこれを使う\n- **let**: 再代入が必要な場合\n- **var**: 使わない（スコープが関数単位で混乱する）\n\n```js\nconst name = \"World\";\nlet count = 0;\nconsole.log(\"Hello, \" + name + \"!\");\n```", position: 0, createdAt: now, updatedAt: now },
+      { id: "msg-2", body: "## 型の種類\n\n`string`, `number`, `boolean`, `null`, `undefined`, `object`\n\n> `typeof null === 'object'` は有名なバグ\n\n| 型 | 例 |\n|---|---|\n| string | `\"hello\"` |\n| number | `42` |\n| boolean | `true` |", position: 1, createdAt: now, updatedAt: now },
     ],
     todos: [
       { id: "todo-1", content: "MDNのデータ型のページを読む", position: 0, completedAt: null, createdAt: now },

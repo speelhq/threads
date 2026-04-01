@@ -135,6 +135,12 @@ export class EditorManager {
     });
     this.handlers.set("messages.delete", async (p) => {
       const { id } = p as { id: string };
+      const answer = await vscode.window.showWarningMessage(
+        "このメッセージを削除しますか？",
+        { modal: true },
+        "削除",
+      );
+      if (answer !== "削除") return;
       return this.apiClient.deleteMessage(id);
     });
     this.handlers.set("messages.reorder", async (p) => {
@@ -203,7 +209,7 @@ export class EditorManager {
   <link rel="stylesheet" href="${styleUri}" />
 </head>
 <body>
-  <div id="root" data-thread-id="${threadId}"></div>
+  <div id="root" data-thread-id="${threadId.replace(/"/g, "&quot;")}"></div>
   <script type="module" src="${scriptUri}"></script>
 </body>
 </html>`;
