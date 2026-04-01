@@ -73,7 +73,8 @@
     "build:webview": "vite build",
     "dev": "concurrently \"pnpm run dev:extension\" \"pnpm run dev:webview\"",
     "dev:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.cjs --external:vscode --format=cjs --platform=node --sourcemap --watch",
-    "dev:webview": "vite build --watch"
+    "dev:webview": "vite build --watch",
+    "test": "vitest run"
   },
   "dependencies": {
     "@threads/shared": "workspace:*",
@@ -95,6 +96,7 @@
     "esbuild": "^0.27.4",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
-    "vite": "^8.0.2"
+    "vite": "^8.0.2",
+    "vitest": "^4.1.0"
   }
 }

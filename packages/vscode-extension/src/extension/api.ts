@@ -9,6 +9,7 @@ import type {
   AuthUser,
   UserCohort,
 } from "../protocol/index.js";
+import { snakeToCamel } from "./snake-to-camel.js";
 
 export class ApiError extends Error {
   constructor(
@@ -314,24 +315,4 @@ export class ApiClient implements IApiClient {
 
     return snakeToCamel(data) as T;
   }
-}
-
-// ── snake_case → camelCase conversion ──
-
-function snakeToCamelKey(key: string): string {
-  return key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
-}
-
-function snakeToCamel(obj: unknown): unknown {
-  if (Array.isArray(obj)) {
-    return obj.map(snakeToCamel);
-  }
-  if (obj !== null && typeof obj === "object") {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-      result[snakeToCamelKey(key)] = snakeToCamel(value);
-    }
-    return result;
-  }
-  return obj;
 }
