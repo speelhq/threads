@@ -1,13 +1,15 @@
 import * as vscode from "vscode";
 import { AuthManager } from "./auth.js";
 import { ApiClient, ApiError } from "./api.js";
+import type { IApiClient } from "./api.js";
+import { MockApiClient } from "./mock-api.js";
 import { SidebarProvider } from "./sidebar.js";
 import { EditorManager } from "./editor.js";
 
 const AUTH_CALLBACK_PAGE_URL = "http://localhost:5173/auth"; // TODO: configure per environment
 
 let authManager: AuthManager;
-let apiClient: ApiClient;
+let apiClient: IApiClient;
 let sidebarProvider: SidebarProvider;
 let editorManager: EditorManager;
 let pendingAuthState: string | null = null;
@@ -53,17 +55,27 @@ export function activate(context: vscode.ExtensionContext) {
   const config = vscode.workspace.getConfiguration("threads");
   const apiKey = config.get<string>("firebaseApiKey", "");
   const apiBaseUrl = config.get<string>("apiBaseUrl", "http://localhost:3000");
+  const devMode = config.get<boolean>("devMode", false);
 
   authManager = new AuthManager(context.secrets, apiKey);
 
-  apiClient = new ApiClient({
-    baseUrl: apiBaseUrl,
-    getToken: () => authManager.getIdToken(),
-    onUnauthorized: () => authManager.tryRefresh(),
-  });
+  if (devMode) {
+    apiClient = new MockApiClient();
+  } else {
+    apiClient = new ApiClient({
+      baseUrl: apiBaseUrl,
+      getToken: () => authManager.getIdToken(),
+      onUnauthorized: () => authManager.tryRefresh(),
+    });
+  }
 
   // Editor
   editorManager = new EditorManager(context.extensionUri, apiClient);
+
+  // Forward thread mutations from editor to sidebar
+  editorManager.setThreadEventListener((event, payload) => {
+    sidebarProvider.pushEvent(event, payload);
+  });
 
   // Sidebar
   sidebarProvider = new SidebarProvider(
@@ -114,6 +126,10 @@ export function activate(context: vscode.ExtensionContext) {
   // Commands
   context.subscriptions.push(
     vscode.commands.registerCommand("threads.login", () => {
+      if (devMode) {
+        void vscode.commands.executeCommand("threads.devLogin");
+        return;
+      }
       pendingAuthState = crypto.randomUUID();
       authManager.startLogin(AUTH_CALLBACK_PAGE_URL, pendingAuthState);
     }),
@@ -125,13 +141,32 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand("threads.devLogin", async () => {
+      const result = await apiClient.login();
+      authManager.notify({
+        user: {
+          id: result.id,
+          email: result.email,
+          displayName: result.displayName,
+          role: result.role,
+        },
+        cohorts: result.cohorts,
+      });
+    }),
+  );
+
   // Restore session
-  void (async () => {
-    const restored = await authManager.restore();
-    if (restored) {
-      await fetchAndNotifyUser();
-    }
-  })();
+  if (devMode) {
+    void vscode.commands.executeCommand("threads.devLogin");
+  } else {
+    void (async () => {
+      const restored = await authManager.restore();
+      if (restored) {
+        await fetchAndNotifyUser();
+      }
+    })();
+  }
 }
 
 export function deactivate() {}

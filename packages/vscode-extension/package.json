@@ -10,7 +10,7 @@
   },
   "categories": ["Other"],
   "activationEvents": [],
-  "main": "./dist/extension/index.js",
+  "main": "./dist/extension/index.cjs",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -56,16 +56,21 @@
           "type": "string",
           "default": "",
           "description": "Firebase Web API Key for authentication"
+        },
+        "threads.devMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use mock data instead of the API server"
         }
       }
     }
   },
   "scripts": {
     "build": "pnpm run build:extension && pnpm run build:webview",
-    "build:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "build:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.cjs --external:vscode --format=cjs --platform=node --sourcemap",
     "build:webview": "vite build",
     "dev": "concurrently \"pnpm run dev:extension\" \"pnpm run dev:webview\"",
-    "dev:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.js --external:vscode --format=cjs --platform=node --sourcemap --watch",
+    "dev:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension/index.cjs --external:vscode --format=cjs --platform=node --sourcemap --watch",
     "dev:webview": "vite build --watch"
   },
   "dependencies": {

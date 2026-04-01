@@ -5,7 +5,7 @@ import type {
   EventMessage,
 } from "../protocol/index.js";
 import type { AuthManager } from "./auth.js";
-import type { ApiClient } from "./api.js";
+import type { IApiClient } from "./api.js";
 import type { EditorManager } from "./editor.js";
 
 type CommandHandler = (payload: unknown) => Promise<unknown>;
@@ -18,7 +18,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   constructor(
     private readonly extensionUri: vscode.Uri,
     private readonly authManager: AuthManager,
-    private readonly apiClient: ApiClient,
+    private readonly apiClient: IApiClient,
   ) {
     this.registerHandlers();
   }
@@ -44,7 +44,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       void this.handleRequest(webviewView.webview, msg);
     });
 
-    // Send current auth state when webview becomes visible
+    // Send current auth state when webview is ready or becomes visible
+    this.pushAuthState();
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
         this.pushAuthState();
@@ -92,6 +93,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   private registerHandlers(): void {
     // Auth
+    this.handlers.set("auth.getState", async () => {
+      return this.authManager.getLastPayload();
+    });
     this.handlers.set("auth.login", async () => {
       void vscode.commands.executeCommand("threads.login");
     });
@@ -112,11 +116,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     });
     this.handlers.set("threads.create", async (p) => {
       const body = p as { title: string; tag_ids?: string[] };
-      return this.apiClient.createThread(body);
+      const result = await this.apiClient.createThread(body);
+      this.pushEvent("threads.created", result);
+      return result;
     });
     this.handlers.set("threads.update", async (p) => {
       const body = p as { id: string; title?: string; pinned?: boolean };
-      return this.apiClient.updateThread(body.id, body);
+      const result = await this.apiClient.updateThread(body.id, body);
+      this.pushEvent("threads.updated", result);
+      return result;
     });
     this.handlers.set("threads.delete", async (p) => {
       const body = p as { id: string };
@@ -126,7 +134,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         "削除",
       );
       if (answer !== "削除") return;
-      return this.apiClient.deleteThread(body.id);
+      await this.apiClient.deleteThread(body.id);
+      this.pushEvent("threads.deleted", { id: body.id });
     });
 
     // Cross-thread TODOs

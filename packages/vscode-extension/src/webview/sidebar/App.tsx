@@ -4,8 +4,14 @@ import type { ThreadSummary, Tag } from "../../protocol/index.js";
 
 export function App() {
   const [authenticated, setAuthenticated] = useState(false);
+  const { execute: getAuthState } = useCommand<{ user: unknown } | null>("auth.getState");
 
   useEffect(() => {
+    // Fetch current auth state on mount (may have been set before webview loaded)
+    void getAuthState().then((p) => {
+      setAuthenticated(p?.user != null);
+    });
+
     return onEvent("auth.stateChanged", (payload) => {
       const p = payload as { user: unknown } | undefined;
       setAuthenticated(p?.user != null);

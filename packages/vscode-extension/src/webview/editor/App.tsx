@@ -61,6 +61,7 @@ function ThreadHeader({
 }) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(thread.title);
+  useEffect(() => { setTitle(thread.title); }, [thread.title]);
   const { execute: updateThread } = useCommand<ThreadSummary>("threads.update");
   const { execute: deleteThread } = useCommand("threads.delete");
 

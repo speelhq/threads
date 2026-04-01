@@ -40,7 +40,33 @@ type SignupResponse = {
   createdAt: string;
 };
 
-export class ApiClient {
+export interface IApiClient {
+  login(): Promise<LoginResponse>;
+  signup(body?: { display_name: string }): Promise<SignupResponse>;
+  getMe(): Promise<LoginResponse>;
+  listThreads(params?: { tagId?: string; search?: string; cursor?: string; limit?: number }): Promise<{ threads: ThreadSummary[]; nextCursor: string | null }>;
+  getThread(id: string): Promise<ThreadDetail>;
+  createThread(body: { title: string; tag_ids?: string[] }): Promise<ThreadSummary>;
+  updateThread(id: string, body: { title?: string; pinned?: boolean }): Promise<ThreadSummary>;
+  deleteThread(id: string): Promise<void>;
+  createMessage(threadId: string, body: { body: string }): Promise<MessageItem>;
+  updateMessage(id: string, body: { body: string }): Promise<MessageItem>;
+  deleteMessage(id: string): Promise<void>;
+  reorderMessages(threadId: string, body: { message_ids: string[] }): Promise<{ messages: { id: string; position: number }[] }>;
+  listCrossThreadTodos(params: { completed: boolean; cursor?: string; limit?: number }): Promise<{ todos: CrossThreadTodo[]; nextCursor: string | null }>;
+  createTodo(threadId: string, body: { content: string }): Promise<TodoItem>;
+  updateTodo(id: string, body: { content?: string; completed?: boolean }): Promise<TodoItem>;
+  deleteTodo(id: string): Promise<void>;
+  createBookmark(threadId: string, body: { url: string }): Promise<BookmarkItem>;
+  updateBookmark(id: string, body: { title?: string; description?: string }): Promise<BookmarkItem>;
+  deleteBookmark(id: string): Promise<void>;
+  listTags(params: { cohortId: string }): Promise<{ tags: Tag[] }>;
+  createTag(body: { name: string }): Promise<Tag>;
+  addThreadTag(threadId: string, tagId: string): Promise<{ threadId: string; tagId: string; createdAt: string }>;
+  removeThreadTag(threadId: string, tagId: string): Promise<void>;
+}
+
+export class ApiClient implements IApiClient {
   private readonly baseUrl: string;
   private readonly getToken: () => string | null;
   private readonly onUnauthorized: () => Promise<string | null>;

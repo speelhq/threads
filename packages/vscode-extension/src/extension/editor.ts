@@ -4,19 +4,26 @@ import type {
   ResponseMessage,
   EventMessage,
 } from "../protocol/index.js";
-import type { ApiClient } from "./api.js";
+import type { IApiClient } from "./api.js";
 
 type CommandHandler = (payload: unknown) => Promise<unknown>;
+
+type ThreadEventListener = (event: string, payload: unknown) => void;
 
 export class EditorManager {
   private panels = new Map<string, vscode.WebviewPanel>();
   private handlers = new Map<string, CommandHandler>();
+  private onThreadEvent: ThreadEventListener | undefined;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
-    private readonly apiClient: ApiClient,
+    private readonly apiClient: IApiClient,
   ) {
     this.registerHandlers();
+  }
+
+  setThreadEventListener(listener: ThreadEventListener): void {
+    this.onThreadEvent = listener;
   }
 
   openThread(threadId: string, title: string): void {
@@ -97,7 +104,9 @@ export class EditorManager {
     });
     this.handlers.set("threads.update", async (p) => {
       const body = p as { id: string; title?: string; pinned?: boolean };
-      return this.apiClient.updateThread(body.id, body);
+      const result = await this.apiClient.updateThread(body.id, body);
+      this.onThreadEvent?.("threads.updated", result);
+      return result;
     });
     this.handlers.set("threads.delete", async (p) => {
       const { id } = p as { id: string };
@@ -108,6 +117,7 @@ export class EditorManager {
       );
       if (answer !== "削除") return;
       await this.apiClient.deleteThread(id);
+      this.onThreadEvent?.("threads.deleted", { id });
       const panel = this.panels.get(id);
       if (panel) {
         panel.dispose();
