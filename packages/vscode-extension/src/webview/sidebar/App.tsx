@@ -1,12 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { onEvent, useCommand } from "../hooks/useCommand.js";
-import type { ThreadSummary, CrossThreadTodo, Tag } from "../../protocol/index.js";
-
-type View = "threads" | "todos";
+import type { ThreadSummary, Tag } from "../../protocol/index.js";
 
 export function App() {
   const [authenticated, setAuthenticated] = useState(false);
-  const [view, setView] = useState<View>("threads");
 
   useEffect(() => {
     return onEvent("auth.stateChanged", (payload) => {
@@ -19,85 +16,38 @@ export function App() {
     return <LoginView />;
   }
 
-  return (
-    <div>
-      <ViewSwitcher view={view} onSwitch={setView} />
-      {view === "threads" ? <ThreadListView /> : <TodoListView />}
-    </div>
-  );
+  return <MainView />;
 }
 
 function LoginView() {
   const { execute, loading, error } = useCommand("auth.login");
 
   return (
-    <div className="p-4 text-center">
-      <p>Sign in to start taking notes.</p>
+    <div className="flex flex-col items-center justify-center h-screen px-5 gap-2">
+      <p className="text-sm opacity-60 m-0 mb-3">Sign in to start taking notes</p>
       <button
+        className="w-full py-1.5 bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] border-none rounded cursor-pointer text-sm hover:bg-[var(--vscode-button-hoverBackground)] disabled:opacity-50 disabled:cursor-default"
         onClick={() => void execute()}
         disabled={loading}
-        className="bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
       >
         {loading ? "Opening browser..." : "Sign in with Google"}
       </button>
-      {error && <p className="text-[var(--vscode-errorForeground)]">{error.message}</p>}
+      {error && <p className="text-[var(--vscode-errorForeground)] text-xs m-0">{error.message}</p>}
     </div>
   );
 }
 
-function ViewSwitcher({ view, onSwitch }: { view: View; onSwitch: (v: View) => void }) {
-  return (
-    <div className="flex border-b border-[var(--vscode-panel-border)]">
-      <button
-        onClick={() => onSwitch("threads")}
-        className={`flex-1 p-2 bg-transparent border-none cursor-pointer border-b-2 ${
-          view === "threads"
-            ? "text-[var(--vscode-foreground)] border-b-[var(--vscode-focusBorder)]"
-            : "text-[var(--vscode-disabledForeground)] border-b-transparent"
-        }`}
-      >
-        Threads
-      </button>
-      <button
-        onClick={() => onSwitch("todos")}
-        className={`flex-1 p-2 bg-transparent border-none cursor-pointer border-b-2 ${
-          view === "todos"
-            ? "text-[var(--vscode-foreground)] border-b-[var(--vscode-focusBorder)]"
-            : "text-[var(--vscode-disabledForeground)] border-b-transparent"
-        }`}
-      >
-        TODOs
-      </button>
-    </div>
-  );
-}
-
-function ThreadListView() {
-  const [threads, setThreads] = useState<ThreadSummary[]>([]);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [tagId, setTagId] = useState<string | undefined>();
+function MainView() {
   const [tags, setTags] = useState<Tag[]>([]);
-  const { execute: fetchThreads, loading } = useCommand<{
-    threads: ThreadSummary[];
-    nextCursor: string | null;
-  }>("threads.list");
+  const [threadsByTag, setThreadsByTag] = useState<Record<string, ThreadSummary[]>>({});
+  const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
   const { execute: fetchTags } = useCommand<{ tags: Tag[] }>("tags.list");
+  const { execute: fetchThreads } = useCommand<{ threads: ThreadSummary[]; nextCursor: string | null }>("threads.list");
   const { execute: createThread } = useCommand<ThreadSummary>("threads.create");
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const { execute: openThread } = useCommand("threads.open");
 
   useEffect(() => {
-    clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => setDebouncedSearch(search), 300);
-    return () => clearTimeout(debounceTimer.current);
-  }, [search]);
-
-  useEffect(() => {
-    void loadThreads();
-  }, [debouncedSearch, tagId]);
-
-  useEffect(() => {
-    // TODO: get cohortId from auth state
+    void loadData();
     return onEvent("threads.created", () => void loadThreads());
   }, []);
 
@@ -109,164 +59,128 @@ function ThreadListView() {
     return onEvent("threads.deleted", () => void loadThreads());
   }, []);
 
+  async function loadData() {
+    try {
+      const result = await fetchTags({ cohortId: "dev-cohort-1" });
+      setTags(result.tags);
+      if (result.tags.length > 0) {
+        setExpandedTags(new Set([result.tags[0]!.id]));
+      }
+    } catch {}
+    await loadThreads();
+  }
+
   async function loadThreads() {
     try {
-      const result = await fetchThreads({ search: debouncedSearch || undefined, tagId });
-      setThreads(result.threads);
-    } catch {
-      // Error handled by useCommand
-    }
+      const result = await fetchThreads({});
+      const grouped: Record<string, ThreadSummary[]> = {};
+      for (const thread of result.threads) {
+        const tagId = thread.tags[0]?.id ?? "untagged";
+        if (!grouped[tagId]) grouped[tagId] = [];
+        grouped[tagId]!.push(thread);
+      }
+      setThreadsByTag(grouped);
+    } catch {}
+  }
+
+  function toggleTag(tagId: string) {
+    setExpandedTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tagId)) next.delete(tagId);
+      else next.add(tagId);
+      return next;
+    });
   }
 
   async function handleNewThread() {
-    const title = "New Thread"; // TODO: prompt for title
+    const firstExpandedTag = tags.find((t) => expandedTags.has(t.id));
+    const tagId = firstExpandedTag?.id ?? tags[0]?.id;
     try {
-      await createThread({ title });
+      const thread = await createThread({ title: "New Thread", tag_ids: tagId ? [tagId] : [] });
       await loadThreads();
-    } catch {
-      // Error handled by useCommand
-    }
+      void openThread({ id: thread.id, title: thread.title });
+    } catch {}
+  }
+
+  function formatTime(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "now";
+    if (mins < 60) return `${mins}m`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `${days}d`;
   }
 
   return (
-    <div className="p-2">
-      <div className="flex gap-1 mb-2">
-        <input
-          type="text"
-          placeholder="Search threads..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 flex-1 rounded-sm"
-        />
+    <div className="flex flex-col h-screen text-[13px]">
+      {/* New Thread button */}
+      <div className="px-3 pt-3 pb-2">
         <button
+          className="w-full flex items-center gap-1.5 px-2 py-1.5 bg-transparent border border-[var(--vscode-input-border)] rounded cursor-pointer text-[var(--vscode-foreground)] text-xs opacity-70 hover:opacity-100 hover:bg-[var(--vscode-list-hoverBackground)]"
           onClick={() => void handleNewThread()}
-          className="bg-[var(--vscode-button-background)] text-[var(--vscode-button-foreground)] border-none px-3 py-1.5 cursor-pointer rounded-sm"
         >
-          +
+          <span className="codicon codicon-add text-xs" />
+          New Thread
         </button>
       </div>
 
-      {tags.length > 0 && (
-        <select
-          value={tagId ?? ""}
-          onChange={(e) => setTagId(e.target.value || undefined)}
-          className="bg-[var(--vscode-input-background)] text-[var(--vscode-input-foreground)] border border-[var(--vscode-input-border)] px-2 py-1 flex-1 rounded-sm"
-        >
-          <option value="">All tags</option>
-          {tags.map((tag) => (
-            <option key={tag.id} value={tag.id}>
-              {tag.name}
-            </option>
-          ))}
-        </select>
-      )}
-
-      {loading && <p className="opacity-50">Loading...</p>}
-
-      <ul className="list-none">
-        {threads.map((thread) => (
-          <ThreadItem key={thread.id} thread={thread} />
-        ))}
-      </ul>
-
-      {!loading && threads.length === 0 && (
-        <p className="opacity-50 text-center">No threads yet</p>
-      )}
-    </div>
-  );
-}
-
-function ThreadItem({ thread }: { thread: ThreadSummary }) {
-  const { execute: openThread } = useCommand("threads.open");
-
-  return (
-    <li
-      className="p-2 cursor-pointer border-b border-[var(--vscode-panel-border)]"
-      onClick={() => void openThread({ id: thread.id, title: thread.title })}
-    >
-      <div className="flex items-center gap-1">
-        {thread.pinnedAt && <span className="codicon codicon-pinned" title="Pinned" />}
-        <span className="font-medium">{thread.title}</span>
-        {thread.incompleteTodoCount > 0 && (
-          <span className="bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] rounded-full px-1.5 text-xs leading-relaxed">
-            {thread.incompleteTodoCount}
-          </span>
-        )}
-      </div>
-      {thread.tags.length > 0 && (
-        <div className="flex gap-1 mt-1 flex-wrap">
-          {thread.tags.map((tag) => (
-            <span
-              key={tag.id}
-              className="bg-[var(--vscode-badge-background)] text-[var(--vscode-badge-foreground)] rounded-sm px-1.5 text-xs"
-            >
-              {tag.name}
-            </span>
-          ))}
+      {/* Tag tree */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-3 pt-1 pb-1 text-[11px] font-semibold uppercase tracking-wider opacity-50">
+          Workspaces
         </div>
-      )}
-    </li>
-  );
-}
-
-function TodoListView() {
-  const [todos, setTodos] = useState<CrossThreadTodo[]>([]);
-  const { execute: fetchTodos, loading } = useCommand<{
-    todos: CrossThreadTodo[];
-    nextCursor: string | null;
-  }>("todos.listCrossThread");
-  const { execute: updateTodo } = useCommand("todos.update");
-
-  useEffect(() => {
-    void loadTodos();
-  }, []);
-
-  async function loadTodos() {
-    try {
-      const result = await fetchTodos({ completed: false });
-      setTodos(result.todos);
-    } catch {
-      // Error handled by useCommand
-    }
-  }
-
-  async function toggleTodo(id: string, completed: boolean) {
-    try {
-      await updateTodo({ id, completed });
-      await loadTodos();
-    } catch {
-      // Error handled by useCommand
-    }
-  }
-
-  return (
-    <div className="p-2">
-      {loading && <p className="opacity-50">Loading...</p>}
-
-      <ul className="list-none">
-        {todos.map((todo) => (
-          <li
-            key={todo.id}
-            className="p-2 border-b border-[var(--vscode-panel-border)] flex gap-2 items-start"
-          >
-            <input
-              type="checkbox"
-              checked={todo.completedAt != null}
-              onChange={() => void toggleTodo(todo.id, todo.completedAt == null)}
-            />
-            <div>
-              <div>{todo.content}</div>
-              <div className="text-sm opacity-70">
-                {todo.thread.title}
+        {tags.map((tag) => {
+          const expanded = expandedTags.has(tag.id);
+          const threads = threadsByTag[tag.id] ?? [];
+          return (
+            <div key={tag.id}>
+              <div
+                className="flex items-center gap-1 px-3 py-1 cursor-pointer opacity-80 hover:opacity-100 hover:bg-[var(--vscode-list-hoverBackground)]"
+                onClick={() => toggleTag(tag.id)}
+              >
+                <span className={`codicon codicon-chevron-${expanded ? "down" : "right"} text-[10px] opacity-60`} />
+                <span className="flex-1 font-medium">{tag.name}</span>
+                {threads.length > 0 && (
+                  <span className="text-[10px] opacity-40">{threads.length}</span>
+                )}
               </div>
+              {expanded && (
+                <div>
+                  {threads.map((thread) => (
+                    <div
+                      key={thread.id}
+                      className="flex items-center gap-1 pl-7 pr-3 py-1 cursor-pointer opacity-70 hover:opacity-100 hover:bg-[var(--vscode-list-hoverBackground)]"
+                      onClick={() => void openThread({ id: thread.id, title: thread.title })}
+                    >
+                      <span className="flex-1 truncate">{thread.title}</span>
+                      <span className="text-[10px] opacity-40 shrink-0">{formatTime(thread.updatedAt)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </li>
-        ))}
-      </ul>
+          );
+        })}
+      </div>
 
-      {!loading && todos.length === 0 && (
-        <p className="opacity-50 text-center">All done!</p>
-      )}
+      {/* Footer menu */}
+      <div className="border-t border-[var(--vscode-panel-border)] px-3 py-2 flex flex-col gap-0.5">
+        <button
+          className="flex items-center gap-2 w-full px-1 py-1 bg-transparent border-none cursor-pointer text-[var(--vscode-foreground)] opacity-70 hover:opacity-100 hover:bg-[var(--vscode-list-hoverBackground)] rounded text-xs"
+          onClick={() => void openThread({ id: "__todos__", title: "TODOs" })}
+        >
+          <span className="codicon codicon-checklist text-sm" />
+          Todos
+        </button>
+        <button
+          className="flex items-center gap-2 w-full px-1 py-1 bg-transparent border-none cursor-pointer text-[var(--vscode-foreground)] opacity-70 hover:opacity-100 hover:bg-[var(--vscode-list-hoverBackground)] rounded text-xs"
+        >
+          <span className="codicon codicon-gear text-sm" />
+          Settings
+        </button>
+      </div>
     </div>
   );
 }
