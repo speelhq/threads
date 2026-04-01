@@ -8,7 +8,9 @@
   "engines": {
     "vscode": "^1.110.0"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "activationEvents": [],
   "main": "./dist/extension/index.cjs",
   "contributes": {
@@ -84,6 +86,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/vscode": "^1.110.0",
     "@vitejs/plugin-react": "^6.0.1",
+    "@vscode/codicons": "^0.0.45",
     "concurrently": "^9.2.1",
     "esbuild": "^0.27.4",
     "tailwindcss": "^4.2.2",

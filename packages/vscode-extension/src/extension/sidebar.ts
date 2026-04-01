@@ -159,6 +159,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const distWebview = vscode.Uri.joinPath(this.extensionUri, "dist", "webview");
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "sidebar.js"));
     const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "assets", "jsx-runtime.css"));
+    const codiconUri = webview.asWebviewUri(vscode.Uri.joinPath(distWebview, "assets", "codicon.css"));
     const csp = `default-src 'none'; script-src ${webview.cspSource}; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};`;
 
     return `<!DOCTYPE html>
@@ -168,6 +169,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   <meta http-equiv="Content-Security-Policy" content="${csp}" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Threads</title>
+  <link rel="stylesheet" href="${codiconUri}" />
   <link rel="stylesheet" href="${styleUri}" />
 </head>
 <body>

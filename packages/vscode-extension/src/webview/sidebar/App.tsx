@@ -135,7 +135,7 @@ function MainView() {
       {/* Tag tree */}
       <div className="flex-1 overflow-y-auto">
         <div className="px-3 pt-1 pb-1 text-[11px] font-semibold uppercase tracking-wider opacity-50">
-          Workspaces
+          Tags
         </div>
         {tags.map((tag) => {
           const expanded = expandedTags.has(tag.id);
@@ -147,7 +147,7 @@ function MainView() {
                 onClick={() => toggleTag(tag.id)}
               >
                 <span className={`codicon codicon-chevron-${expanded ? "down" : "right"} text-[10px] opacity-60`} />
-                <span className="flex-1 font-medium">{tag.name}</span>
+                <span className="flex-1 font-medium"># {tag.name}</span>
                 {threads.length > 0 && (
                   <span className="text-[10px] opacity-40">{threads.length}</span>
                 )}
